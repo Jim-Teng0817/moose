@@ -151,6 +151,12 @@ void
 AverageGrainVolume::finalize()
 {
   gatherSum(_feature_volumes);
+  // int n = 0;                                              // Added for each grain size volume (Jim 20250512) 
+  // for (const auto& i : _feature_volumes) {                // Added for each grain size volume (Jim 20250512)
+  //   std::cout << "Grain " << n << ":" << i << std::endl;
+  //   ++n;
+  // }
+  // std::cout << std::endl;                                 // Added for each grain size volume (Jim 20250512)
 }
 
 Real
