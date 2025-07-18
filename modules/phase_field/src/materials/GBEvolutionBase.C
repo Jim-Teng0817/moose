@@ -81,6 +81,7 @@ GBEvolutionBaseTempl<is_ad>::computeQpProperties()
     // const Real M0 = _GBmob0 * _time_scale / (_JtoeV * length_scale4); // Removed for literature mobility (Jim 20250606)
     const Real M0 = _GBmob0 * _time_scale / (_JtoeV * length_scale3);   // Added for literature mobility (Jim 20250606)
 
+    
     _M_GB[_qp] = M0 * std::exp(-_Q / (_kb * _T[_qp]));
     dM_GBdT = MetaPhysicL::raw_value(_M_GB[_qp] * _Q / (_kb * _T[_qp] * _T[_qp]));
   }
