@@ -1,28 +1,36 @@
-endtime = 5e-4 # s
-timestep = '${fparse endtime/100}' # s
-surfacetemp = 300 # K
-power = 190 # W
-R = 1.8257418583505537e-4 # m
-
-[Mesh]
-  type = GeneratedMesh
-  dim = 2
-  xmin = -.45e-3 # m
-  xmax = 0.45e-3 # m
-  ymin = -.9e-4 # m
-  ymax = 0
-  nx = 25
-  ny = 5
-  displacements = 'disp_x disp_y'
-[]
+period = 1.25e-3
+endtime = ${period}
+timestep = 1.25e-5
+surfacetemp = 300
+sb = 5.67e-8
 
 [GlobalParams]
   temperature = T
 []
 
-# [Problem]
-#   error_on_jacobian_nonzero_reallocation = false
-# []
+[Mesh]
+  [gen]
+    type = GeneratedMeshGenerator
+    dim = 3
+    xmin = 0e-3
+    xmax = 0.5e-3
+    ymin = 0e-3
+    ymax = 1.5e-3
+    zmin = 0e-3
+    zmax = 0.5e-3
+    nx = 2
+    ny = 6
+    nz = 2
+  []
+  [corner_node]
+    type = ExtraNodesetGenerator
+    new_boundary = 'pinned_node'
+    coord = '0.0 0 0.0'
+    input = gen
+  []
+  displacements = 'disp_x disp_y disp_z'
+  uniform_refine = 2
+[]
 
 [Variables]
   [vel]
@@ -36,35 +44,7 @@ R = 1.8257418583505537e-4 # m
   []
   [disp_y]
   []
-[]
-
-[AuxVariables]
-  [vel_x_aux]
-    [InitialCondition]
-      type = ConstantIC
-      value = 1e-15
-    []
-  []
-  [vel_y_aux]
-    [InitialCondition]
-      type = ConstantIC
-      value = 1e-15
-    []
-  []
-[]
-
-[AuxKernels]
-  [vel_x_value]
-    type = VectorVariableComponentAux
-    variable = vel_x_aux
-    vector_variable = vel
-    component = x
-  []
-  [vel_y_value]
-    type = VectorVariableComponentAux
-    variable = vel_y_aux
-    vector_variable = vel
-    component = y
+  [disp_z]
   []
 []
 
@@ -72,18 +52,33 @@ R = 1.8257418583505537e-4 # m
   [T]
     type = FunctionIC
     variable = T
-    function = '(${surfacetemp} - 300) / .7e-3 * y + ${surfacetemp}'
+    function = '(${surfacetemp} - 300) / .7e-3 * z + ${surfacetemp}'
+  []
+[]
+
+[Materials]
+  [Dc]
+    type = GenericConstantMaterial
+    prop_names = Du
+    prop_values = '10'
   []
 []
 
 [Kernels]
   [disp_x]
-    type = Diffusion
+    type = MatDiffusion
     variable = disp_x
+    diffusivity = Du
   []
   [disp_y]
-    type = Diffusion
+    type = MatDiffusion
     variable = disp_y
+    diffusivity = Du
+  []
+  [disp_z]
+    type = MatDiffusion
+    variable = disp_z
+    diffusivity = Du
   []
   [mass]
     type = INSADMass
@@ -110,6 +105,7 @@ R = 1.8257418583505537e-4 # m
     variable = vel
     disp_x = disp_x
     disp_y = disp_y
+    disp_z = disp_z
     use_displaced_mesh = true
   []
   [momentum_viscous]
@@ -145,6 +141,7 @@ R = 1.8257418583505537e-4 # m
     variable = T
     disp_x = disp_x
     disp_y = disp_y
+    disp_z = disp_z
     use_displaced_mesh = true
   []
   [temperature_conduction]
@@ -162,64 +159,77 @@ R = 1.8257418583505537e-4 # m
 []
 
 [BCs]
+  [pressure_pin]
+    type = DirichletBC
+    variable = p
+    boundary = 'pinned_node'
+    value = 0
+  []
   [x_no_disp]
     type = DirichletBC
     variable = disp_x
-    boundary = 'bottom'
+    boundary = 'back'
     value = 0
   []
   [y_no_disp]
     type = DirichletBC
     variable = disp_y
-    boundary = 'bottom'
+    boundary = 'back'
+    value = 0
+  []
+  [z_no_disp]
+    type = DirichletBC
+    variable = disp_z
+    boundary = 'back'
     value = 0
   []
   [no_slip]
     type = ADVectorFunctionDirichletBC
     variable = vel
-    boundary = 'bottom right left'
+    boundary = 'bottom right left top back'
   []
   [T_cold]
     type = DirichletBC
     variable = T
-    boundary = 'bottom'
+    boundary = 'back'
     value = 300
   []
   [radiation_flux]
     type = FunctionRadiativeBC
     variable = T
-    boundary = 'top'
+    boundary = 'front'
     emissivity_function = '1'
     Tinfinity = 300
-    stefan_boltzmann_constant = 5.67e-8
+    stefan_boltzmann_constant = ${sb}
     use_displaced_mesh = true
   []
   [weld_flux]
     type = GaussianEnergyFluxBC
     variable = T
-    boundary = 'top'
-    P0 = ${power}
-    R = ${R}
-    x_beam_coord = '-0.35e-3 +0.7e-3*t/${endtime}'
-    y_beam_coord = '0'
+    boundary = 'front'
+    P0 = 159.96989792079225
+    R = 1.8257418583505537e-4
+    x_beam_coord = '0.25e-3'
+    y_beam_coord = '1.5e-3*t/${endtime}'
+    z_beam_coord = 0.5e-3
     use_displaced_mesh = true
   []
   # [vapor_recoil]
   #   type = INSADVaporRecoilPressureMomentumFluxBC
   #   variable = vel
-  #   boundary = 'top'
+  #   boundary = 'front'
   #   use_displaced_mesh = true
   # []
-  # [surface_tension]
-  #   type = INSADSurfaceTensionBC
-  #   variable = vel
-  #   boundary = 'top'
-  #   use_displaced_mesh = true
-  #   include_gradient_terms = true
-  # []
+  [surface_tension]
+    type = INSADSurfaceTensionBC
+    variable = vel
+    boundary = 'front'
+    use_displaced_mesh = true
+    include_gradient_terms = true
+  []
   # [displace_x_top]
   #   type = INSADDisplaceBoundaryBC
-  #   boundary = 'top'
+  #   boundary = 'front'
   #   variable = 'disp_x'
   #   velocity = 'vel'
   #   component = 0
@@ -227,36 +237,32 @@ R = 1.8257418583505537e-4 # m
   # []
   # [displace_y_top]
   #   type = INSADDisplaceBoundaryBC
-  #   boundary = 'top'
+  #   boundary = 'front'
   #   variable = 'disp_y'
   #   velocity = 'vel'
-  #   component = 0
+  #   component = 1
   #   associated_subdomain = 0
   # []
-
-  # [displace_x_top]
-  #   type = INSADMassAdditionBoundaryBC
-  #   boundary = 'top'
-  #   variable = 'disp_y'
-  #   temperature = 'T'
-  #   deposition_velocity = 0
-  #   activation_temperature = 2500
-  #   smooth_param = 10
+  # [displace_z_top]
+  #   type = INSADDisplaceBoundaryBC
+  #   boundary = 'front'
+  #   variable = 'disp_z'
+  #   velocity = 'vel'
+  #   component = 2
+  #   associated_subdomain = 0
   # []
-
-  [displace_y_top]
+  [displace_z_top]
     type = INSADMassAdditionBoundaryBC
-    boundary = 'top'
-    variable = 'disp_y'
+    boundary = 'front'
+    variable = 'disp_z'
     temperature = 'T'
-    deposition_velocity = 200e-3
-    activation_temperature = 2000
-    smooth_param = 10
+    deposition_velocity = 150e-3
+    activation_temperature = 2500
+    smooth_param = 200
   []
-
   [displace_x_top_dummy]
     type = INSADDummyDisplaceBoundaryIntegratedBC
-    boundary = 'top'
+    boundary = 'front'
     variable = 'disp_x'
     velocity = 'vel'
     temperature = 'T'
@@ -264,24 +270,36 @@ R = 1.8257418583505537e-4 # m
   []
   [displace_y_top_dummy]
     type = INSADDummyDisplaceBoundaryIntegratedBC
+    boundary = 'front'
+    variable = 'disp_y'
+    velocity = 'vel'
+    temperature = 'T'
+    component = 1
+  []
+  [displace_z_top_dummy]
+    type = INSADDummyDisplaceBoundaryIntegratedBC
+    boundary = 'front'
+    variable = 'disp_z'
+    velocity = 'vel'
+    temperature = 'T'
+    component = 2
+  []
+  [displace_x_top_dummy2]
+    type = INSADDummyDisplaceBoundaryIntegratedBC
+    boundary = 'top'
+    variable = 'disp_x'
+    velocity = 'vel'
+    temperature = 'T'
+    component = 0
+  []
+  [displace_y_top_dummy2]
+    type = INSADDummyDisplaceBoundaryIntegratedBC
     boundary = 'top'
     variable = 'disp_y'
     velocity = 'vel'
     temperature = 'T'
     component = 1
   []
-  # [displace_x_top_dummy2]
-  #   type = INSADDummyMassAdditionBoundaryBC
-  #   boundary = 'top'
-  #   variable = 'disp_x'
-  #   temperature = 'T'
-  # []
-  # [displace_y_top_dummy2]
-  #   type = INSADDummyMassAdditionBoundaryBC
-  #   boundary = 'top'
-  #   variable = 'disp_y'
-  #   temperature = 'T'
-  # []
 []
 
 [Materials]
@@ -300,14 +318,14 @@ R = 1.8257418583505537e-4 # m
   []
   [steel_boundary]
     type = AriaLaserWeld304LStainlessSteelBoundary
-    boundary = 'top'
+    boundary = 'front'
     temperature = T
     use_displaced_mesh = true
   []
   [const]
     type = GenericConstantMaterial
     prop_names = 'abs sb_constant'
-    prop_values = '1 5.67e-8'
+    prop_values = '1 ${sb}'
     use_displaced_mesh = true
   []
 []
@@ -333,7 +351,7 @@ R = 1.8257418583505537e-4 # m
   l_max_its = 100
   [TimeStepper]
     type = IterationAdaptiveDT
-    optimal_iterations = 15
+    optimal_iterations = 7
     dt = ${timestep}
     linear_iteration_ratio = 1e6
     growth_factor = 1.5
@@ -356,7 +374,7 @@ R = 1.8257418583505537e-4 # m
 
 [Adaptivity]
   marker = combo
-  max_h_level = 3
+  max_h_level = 5
 
   [Indicators]
     [error_T]
@@ -365,7 +383,7 @@ R = 1.8257418583505537e-4 # m
     []
     [error_dispz]
       type = GradientJumpIndicator
-      variable = disp_y
+      variable = disp_z
     []
   []
 
