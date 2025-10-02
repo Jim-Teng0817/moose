@@ -20,6 +20,7 @@ INSADDummyDisplaceBoundaryIntegratedBC::validParams()
   params.addRequiredParam<MooseFunctorName>("velocity", "The velocity at which to displace");
   params.addRequiredParam<unsigned short>(
       "component", "What component of velocity/displacement this object is acting on.");
+  params.addRequiredCoupledVar("temperature", "The temperature variable");
   return params;
 }
 
@@ -27,7 +28,8 @@ INSADDummyDisplaceBoundaryIntegratedBC::INSADDummyDisplaceBoundaryIntegratedBC(
     const InputParameters & parameters)
   : ADIntegratedBC(parameters),
     _velocity(getFunctor<ADRealVectorValue>("velocity")),
-    _component(getParam<unsigned short>("component"))
+    _component(getParam<unsigned short>("component")),
+    _T(adCoupledValue("temperature"))
 {
 }
 
@@ -36,5 +38,5 @@ INSADDummyDisplaceBoundaryIntegratedBC::computeQpResidual()
 {
   const Moose::ElemSideQpArg elem_side_qp = {
       _current_elem, _current_side, _qp, _qrule, _q_point[_qp]};
-  return 0 * _velocity(elem_side_qp, determineState())(_component);
+  return 0 * _velocity(elem_side_qp, determineState())(_component) * _T[_qp];
 }

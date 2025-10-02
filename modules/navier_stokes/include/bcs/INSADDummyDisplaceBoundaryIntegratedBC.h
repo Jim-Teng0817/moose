@@ -35,4 +35,6 @@ protected:
 
   /// What component of velocity/displacement this object is acting on
   const unsigned short _component;
+
+  const ADVariableValue & _T; // temperature
 };
