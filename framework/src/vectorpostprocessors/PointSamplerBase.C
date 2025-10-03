@@ -1,5 +1,5 @@
 //* This file is part of the MOOSE framework
-//* https://mooseframework.inl.gov
+//* https://www.mooseframework.org
 //*
 //* All rights reserved, see COPYRIGHT for full restrictions
 //* https://github.com/idaholab/moose/blob/master/COPYRIGHT
@@ -45,6 +45,7 @@ PointSamplerBase::PointSamplerBase(const InputParameters & parameters)
 void
 PointSamplerBase::initialize()
 {
+  // std::cout << "_points.size_begin_of_initializtion" << _points.size() << std::endl;
   // Generate new Ids if the point vector has grown (non-negative counting numbers)
   if (_points.size() > _ids.size())
   {
@@ -71,6 +72,7 @@ PointSamplerBase::initialize()
   _point_values.resize(_points.size());
   std::for_each(
       _point_values.begin(), _point_values.end(), [](std::vector<Real> & vec) { vec.clear(); });
+  // std::cout << "_points.size_end_of_initializtion" << _points.size() << std::endl;       // Added for CSV data points input (Jim March 30, 2025)    
 }
 
 void
@@ -92,11 +94,20 @@ PointSamplerBase::finalize()
     // _global_found_points should contain all 1's at this point (ie every point was found by a
     // proc)
     if (pid == 0 && !_global_found_points[i])
-      mooseError("In ", name(), ", sample point not found: ", _points[i]);
+    {
+      // mooseError("In ", name(), ", sample point not found: ", _points[i]);     // Modified and Removed for CSV data points input (Jim March 30, 2025)
+
+      // mooseWarning("In ", name(), ", sample point not found: ", _points[i], ". Setting default value.");     // Added for CSV data points input (Jim March 30, 2025)
+
+      _point_values[i] = std::vector<double>{300.0, 0.0, 0.0};;     // Modified for CSV data points input (Jim Sep. 27, 2025) //set default value to be 300 K (Room Temp.), solidification rate, temperature gradient      SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);     // Added for CSV data points input (Jim March 30, 2025)
+    }
 
     // only process that found the point has the value, and only process with max id should add
     if (pid == max_pid[i] && _found_points[i])
+    {
       SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);
+    }
+
   }
 
   SamplerBase::finalize();

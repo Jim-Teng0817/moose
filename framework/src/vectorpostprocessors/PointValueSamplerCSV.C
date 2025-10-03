@@ -134,6 +134,7 @@ PointValueSamplerCSV::initialize()
   // std::cout << std::endl;
   // std::cout << "_points.size_after_initialization" << _points.size() << std::endl;
   PointVariableSamplerBase::initialize();
+<<<<<<< HEAD
 }
 
 
@@ -154,3 +155,4 @@ PointValueSamplerCSV::finalize()   // Added for CSV data points input (Jim Sep 2
     SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);
   }
 }
+
