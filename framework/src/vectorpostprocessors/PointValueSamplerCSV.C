@@ -29,6 +29,13 @@ PointValueSamplerCSV::validParams()
     "column_indices",
     "Column indices in the CSV file to be sampled from. Number of indices here "
     "will be the same as the number of columns per matrix.");
+  
+  params.addParam<std::vector<Real>>(    // Added for CSV data points input (Jim Sep 27, 2025)
+    "default_values",
+    {300.0, 0.0, 0.0},     // This samples: temp, temperature_gradient, and solidification_rate If only sample temp => {300.0},
+    "Default values if a sample point is not found. "
+    "Order should match the variables being sampled.");
+
   // params.addParam<std::vector<std::string>>(          // Modified and Removed for CSV data points input (Jim March 17, 2025) // Added for CSV data points input (Jim March 15, 2025)
   //   "column_names",
   //   "Column names in the CSV file to be sampled from. Number of columns names "
@@ -127,4 +134,23 @@ PointValueSamplerCSV::initialize()
   // std::cout << std::endl;
   // std::cout << "_points.size_after_initialization" << _points.size() << std::endl;
   PointVariableSamplerBase::initialize();
+}
+
+
+void
+PointValueSamplerCSV::finalize()   // Added for CSV data points input (Jim Sep 27, 2025)
+{
+  // Loop over all points
+  for (MooseIndex(_found_points) i = 0; i < _found_points.size(); ++i)
+  {
+    // If the point was not found, set default values
+    if (!_found_points[i])
+    {
+      // mooseWarning("In ", name(), ", sample point not found: ", _points[i], ". Using default values.");
+      _point_values[i] = _default_values; // _default_values is a std::vector<Real> with your defaults
+    }
+
+    // Add sample for all points
+    SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);
+  }
 }

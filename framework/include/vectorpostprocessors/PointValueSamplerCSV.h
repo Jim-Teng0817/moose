@@ -20,12 +20,13 @@ public:
   PointValueSamplerCSV(const InputParameters & parameters);
 
   virtual void initialize() override;
+  virtual void finalize() override;  // Added for CSV data points input (Jim Sep 27, 2025)
 
 protected:
-  void readCSVFile();   // Added for CSV data points input (Jim March 13, 2025) // Read points from a CSV file
+  // void readCSVFile();  // Modified and Removed for CSV data points input (Jim Sep 27, 2025) // Added for CSV data points input (Jim March 13, 2025) // Read points from a CSV file
 
 private:
-//   std::vector<Point> _points;   // Added for CSV data points input (Jim March 13, 2025)// Vector to store points read from the CSV file
+  // std::vector<Point> _points;   // Added for CSV data points input (Jim March 13, 2025)// Vector to store points read from the CSV file
   std::vector<size_t> indices;  // Modified and Removed for CSV data points input (Jim March 17, 2025) // Added for CSV data points input (Jim March 16, 2025)
-
+  std::vector<Real> _default_values;  // Added for CSV data points input (Jim Sep. 27, 2025)
 };
