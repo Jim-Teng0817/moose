@@ -2,16 +2,16 @@ period = 1.25e-3 # Period of the laser motion
 endtime = ${period} # Total simulation time (Simulation end time)
 timestep = 1.25e-5 # Time step size
 surfacetemp = 300 # Surface temperature in K
-sb = 5.67e-8  # Stefan-Boltzmann constant
+sb = 5.67e-8  # Stefan-Boltzmann constant (in kg s^-3 K^-4)
 
 [Mesh]
   [gen] 
     type = GeneratedMeshGenerator
     dim = 3
     xmin = 0e-3
-    xmax = 0.5e-3
+    xmax = 1.5e-3
     ymin = 0e-3
-    ymax = 1.5e-3
+    ymax = 0.5e-3
     zmin = 0e-3
     zmax = 0.5e-3
     nx = 2
@@ -26,19 +26,19 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
   error_on_jacobian_nonzero_reallocation = false
 []
 
-[Variables]
+[Variables] # primary variables for temperature and mesh displacements
   [T]
   []
-  [disp_x]  # Mesh displacement in the x direction
+  [disp_x]
   []
-  [disp_y]  # Mesh displacement in the y direction
+  [disp_y]
   []
-  [disp_z]  # Mesh displacement in the z direction
+  [disp_z]
   []
 []
 
-[AuxVariables]
-  [vel]
+[AuxVariables]  # aux variables for velocity and pressure
+  [vel] 
     family = LAGRANGE_VEC
   []
   [p]
@@ -53,8 +53,8 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
   []
 []
 
-[Materials]
-  [Dc]
+[Materials]   # material for diffusivity used in mesh displacement kernels (not sure yet)
+  [Dc]   
     type = GenericConstantMaterial
     prop_names = Du
     prop_values = '1'
@@ -65,7 +65,7 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
   [disp_x]
     type = MatDiffusion
     variable = disp_x
-    diffusivity = Du
+    diffusivity = Du   # use a material property for diffusivity (not sure yet)
   []
   [disp_y]
     type = MatDiffusion
@@ -77,17 +77,17 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     variable = disp_z
     diffusivity = Du
   []
-  [temperature_time]
+  [temperature_time]  # kernel for time derivative of temperature
     type = INSADHeatConductionTimeDerivative
     variable = T
     use_displaced_mesh = true
   []
-  [temperature_advection]
+  [temperature_advection]  # kernel for advection due to fluid velocity (not sure yet)
     type = INSADEnergyAdvection
     variable = T
     use_displaced_mesh = true
   []
-  [temperature_mesh_advection]
+  [temperature_mesh_advection]  # kernel for advection due to mesh motion
     type = INSADEnergyMeshAdvection
     variable = T
     disp_x = disp_x
@@ -95,40 +95,40 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     disp_z = disp_z
     use_displaced_mesh = true
   []
-  [temperature_conduction]
+  [temperature_conduction]  # kernel for heat conduction
     type = ADHeatConduction
     variable = T
-    thermal_conductivity = 'k'
+    thermal_conductivity = 'k'  # thermal conductivity defined in material AriaLaserWeld304LStainlessSteel
     use_displaced_mesh = true
   []
 []
 
 [BCs]
-  [x_no_disp]
+  [x_no_disp]  # boundary condition to fix displacement in x direction at the back (z=0) boundary
     type = DirichletBC
     variable = disp_x
-    boundary = 'back'
+    boundary = 'back' # In 3D (By Paraview), back (lower z) = 0, bottom (lower y) = 1, right (higher x) = 2, top (higher y) = 3, left (lower x) = 4, front (higher z) = 5
     value = 0
   []
-  [y_no_disp]
+  [y_no_disp]  # boundary condition to fix displacement in y direction at the back (z=0) boundary
     type = DirichletBC
     variable = disp_y
     boundary = 'back'
     value = 0
   []
-  [z_no_disp]
+  [z_no_disp]  # boundary condition to fix displacement in z direction at the back (z=0) boundary
     type = DirichletBC
     variable = disp_z
     boundary = 'back'
     value = 0
   []
-  [T_cold]
+  [T_cold]  # boundary condition to set temperature at the back (z=0) boundary
     type = DirichletBC
     variable = T
     boundary = 'back'
     value = 300
   []
-  [radiation_flux]
+  [radiation_flux]  # boundary condition for radiation heat loss at the front (z=max) boundary
     type = FunctionRadiativeBC
     variable = T
     boundary = 'front'
@@ -137,16 +137,16 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     stefan_boltzmann_constant = ${sb}
     use_displaced_mesh = true
   []
-  [weld_flux]
-    type = GaussianEnergyFluxBC
+  [weld_flux]  # boundary condition for laser heat flux at the front (z=max) boundary
+    type = GaussianEnergyFluxBC 
     variable = T
-    boundary = 'front'
-    P0 = 159.96989792079225
-    R = 1.8257418583505537e-4
-    x_beam_coord = '0.25e-3'
-    y_beam_coord = '1.5e-3*t/${endtime}'
-    z_beam_coord = 0.5e-3
-    use_displaced_mesh = true
+    boundary = 'front'                    # the boundary where the laser is applied
+    P0 = 159.96989792079225               # Peak power of the laser in W
+    R = 1.8257418583505537e-4             # The radius at which the beam intensity falls to 1/e^2 of its axis value in m
+    x_beam_coord = '1.5e-3*t/${endtime}'  # x coordinate of the laser beam center (moving in x direction over time)
+    y_beam_coord = '0.25e-3'              # y coordinate of the laser beam center (fixed in y direction)
+    z_beam_coord = '0.5e-3'               # z coordinate of the laser beam center (fixed in z direction)
+    use_displaced_mesh = true             # use displaced mesh for moving boundary (=> how to distibute the Guassian flux on the deformed surface matters)
   []
   [displace_z_top]
     type = INSADMassAdditionBoundaryBC

@@ -56,7 +56,11 @@ GaussianEnergyFluxBC::beamFlux(const T & flux_obj, const PointType & flux_obj_lo
   const RealVectorValue beam_coords{flux_obj._x_beam_coord.value(flux_obj._t, origin),
                                     flux_obj._y_beam_coord.value(flux_obj._t, origin),
                                     flux_obj._z_beam_coord.value(flux_obj._t, origin)};
-  const auto r = (flux_obj_location - beam_coords).norm();
+  // const auto r = (flux_obj_location - beam_coords).norm();  // compute radial distance in 3D 
+  
+  const auto dx = flux_obj_location(0) - beam_coords(0);  // compute radial distance in XY plane only (Jim Oct. 8, 2025) 
+  const auto dy = flux_obj_location(1) - beam_coords(1);  // compute radial distance in XY plane only (Jim Oct. 8, 2025) 
+  const auto r = std::sqrt(dx*dx + dy*dy);                // compute radial distance in XY plane only (Jim Oct. 8, 2025)
   const auto R2 = flux_obj._R * flux_obj._R;
 
   using std::exp;

@@ -1,11 +1,15 @@
-period = 1.25e-3 # Period of the laser motion
-endtime = ${period} # Total simulation time (Simulation end time)
-timestep = 1.25e-5 # Time step size
-surfacetemp = 300 # Surface temperature in K
-sb = 5.67e-8  # Stefan-Boltzmann constant
+period = 1.25e-3
+endtime = ${period}
+timestep = 1.25e-5
+surfacetemp = 300
+sb = 5.67e-8
+
+[GlobalParams]
+  temperature = T
+[]
 
 [Mesh]
-  [gen] 
+  [gen]
     type = GeneratedMeshGenerator
     dim = 3
     xmin = 0e-3
@@ -18,30 +22,29 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     ny = 6
     nz = 2
   []
+  [corner_node]
+    type = ExtraNodesetGenerator
+    new_boundary = 'pinned_node'
+    coord = '0.0 0 0.0'
+    input = gen
+  []
   displacements = 'disp_x disp_y disp_z'
   uniform_refine = 2
 []
 
-[Problem]
-  error_on_jacobian_nonzero_reallocation = false
-[]
-
 [Variables]
-  [T]
-  []
-  [disp_x]  # Mesh displacement in the x direction
-  []
-  [disp_y]  # Mesh displacement in the y direction
-  []
-  [disp_z]  # Mesh displacement in the z direction
-  []
-[]
-
-[AuxVariables]
   [vel]
     family = LAGRANGE_VEC
   []
+  [T]
+  []
   [p]
+  []
+  [disp_x]
+  []
+  [disp_y]
+  []
+  [disp_z]
   []
 []
 
@@ -57,7 +60,7 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
   [Dc]
     type = GenericConstantMaterial
     prop_names = Du
-    prop_values = '1'
+    prop_values = '10'
   []
 []
 
@@ -76,6 +79,52 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     type = MatDiffusion
     variable = disp_z
     diffusivity = Du
+  []
+  [mass]
+    type = INSADMass
+    variable = p
+    use_displaced_mesh = true
+  []
+  [mass_pspg]
+    type = INSADMassPSPG
+    variable = p
+    use_displaced_mesh = true
+  []
+  [momentum_time]
+    type = INSADMomentumTimeDerivative
+    variable = vel
+    use_displaced_mesh = true
+  []
+  [momentum_advection]
+    type = INSADMomentumAdvection
+    variable = vel
+    use_displaced_mesh = true
+  []
+  [momentum_mesh_advection]
+    type = INSADMomentumMeshAdvection
+    variable = vel
+    disp_x = disp_x
+    disp_y = disp_y
+    disp_z = disp_z
+    use_displaced_mesh = true
+  []
+  [momentum_viscous]
+    type = INSADMomentumViscous
+    variable = vel
+    use_displaced_mesh = true
+  []
+  [momentum_pressure]
+    type = INSADMomentumPressure
+    variable = vel
+    pressure = p
+    integrate_p_by_parts = true
+    use_displaced_mesh = true
+  []
+  [momentum_supg]
+    type = INSADMomentumSUPG
+    variable = vel
+    material_velocity = relative_velocity
+    use_displaced_mesh = true
   []
   [temperature_time]
     type = INSADHeatConductionTimeDerivative
@@ -101,9 +150,21 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     thermal_conductivity = 'k'
     use_displaced_mesh = true
   []
+  [temperature_supg]
+    type = INSADEnergySUPG
+    variable = T
+    velocity = vel
+    use_displaced_mesh = true
+  []
 []
 
 [BCs]
+  [pressure_pin]
+    type = DirichletBC
+    variable = p
+    boundary = 'pinned_node'
+    value = 0
+  []
   [x_no_disp]
     type = DirichletBC
     variable = disp_x
@@ -121,6 +182,11 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     variable = disp_z
     boundary = 'back'
     value = 0
+  []
+  [no_slip]
+    type = ADVectorFunctionDirichletBC
+    variable = vel
+    boundary = 'bottom right left top back'
   []
   [T_cold]
     type = DirichletBC
@@ -148,6 +214,43 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     z_beam_coord = 0.5e-3
     use_displaced_mesh = true
   []
+  # [vapor_recoil]
+  #   type = INSADVaporRecoilPressureMomentumFluxBC
+  #   variable = vel
+  #   boundary = 'front'
+  #   use_displaced_mesh = true
+  # []
+  [surface_tension]
+    type = INSADSurfaceTensionBC
+    variable = vel
+    boundary = 'front'
+    use_displaced_mesh = true
+    include_gradient_terms = true
+  []
+  # [displace_x_top]
+  #   type = INSADDisplaceBoundaryBC
+  #   boundary = 'front'
+  #   variable = 'disp_x'
+  #   velocity = 'vel'
+  #   component = 0
+  #   associated_subdomain = 0
+  # []
+  # [displace_y_top]
+  #   type = INSADDisplaceBoundaryBC
+  #   boundary = 'front'
+  #   variable = 'disp_y'
+  #   velocity = 'vel'
+  #   component = 1
+  #   associated_subdomain = 0
+  # []
+  # [displace_z_top]
+  #   type = INSADDisplaceBoundaryBC
+  #   boundary = 'front'
+  #   variable = 'disp_z'
+  #   velocity = 'vel'
+  #   component = 2
+  #   associated_subdomain = 0
+  # []
   [displace_z_top]
     type = INSADMassAdditionBoundaryBC
     boundary = 'front'
@@ -232,7 +335,7 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
     type = SMP
     full = true
     petsc_options_iname = '-pc_type -pc_factor_shift_type -pc_factor_mat_solver_type'
-    petsc_options_value = 'lu       NONZERO               superlu_dist'
+    petsc_options_value = 'lu       NONZERO               strumpack'
   []
 []
 
@@ -246,13 +349,13 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
   line_search = 'none'
   nl_max_its = 12
   l_max_its = 100
-  # [TimeStepper]
-  #   type = IterationAdaptiveDT
-  #   optimal_iterations = 7
-  #   dt = ${timestep}
-  #   linear_iteration_ratio = 1e6
-  #   growth_factor = 1.5
-  # []
+  [TimeStepper]
+    type = IterationAdaptiveDT
+    optimal_iterations = 7
+    dt = ${timestep}
+    linear_iteration_ratio = 1e6
+    growth_factor = 1.5
+  []
 []
 
 [Outputs]

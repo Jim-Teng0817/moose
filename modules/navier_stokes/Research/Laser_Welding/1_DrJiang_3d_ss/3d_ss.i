@@ -29,11 +29,11 @@ sb = 5.67e-8  # Stefan-Boltzmann constant
 [Variables]
   [T]
   []
-  [disp_x]  # Mesh displacement in the x direction
+  [disp_x]
   []
-  [disp_y]  # Mesh displacement in the y direction
+  [disp_y]
   []
-  [disp_z]  # Mesh displacement in the z direction
+  [disp_z]
   []
 []
 
