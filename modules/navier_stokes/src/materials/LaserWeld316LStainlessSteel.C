@@ -9,7 +9,7 @@
 
 #include "LaserWeld316LStainlessSteel.h"
 
-registerMooseObject("NavierStokesTestApp", LaserWeld316LStainlessSteel);
+registerMooseObject("NavierStokesApp", LaserWeld316LStainlessSteel);
 
 InputParameters
 LaserWeld316LStainlessSteel::validParams()
