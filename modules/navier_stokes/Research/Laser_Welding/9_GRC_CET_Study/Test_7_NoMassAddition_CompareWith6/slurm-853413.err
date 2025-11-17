@@ -1,0 +1,8 @@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 254164 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 253083 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 254163 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+Killed
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 252050 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 252055 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+slurmstepd: error: *** JOB 853413 ON wr9n28 CANCELLED AT 2025-10-25T10:46:33 ***
+slurmstepd: error: Detected 1 oom_kill event in StepId=853413.batch. Some of the step tasks have been OOM Killed.

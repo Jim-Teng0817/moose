@@ -1,0 +1,188 @@
+  Elem Information
+   id()=23684, unique_id()=199097, subdomain_id()=0, processor_id()=39
+   type()=HEX8
+   dim()=3
+   n_nodes()=8
+   mapping=LAGRANGE_MAP
+    0  Node id()=28702, processor_id()=39, Point=(x,y,z)=(0.000208333, 0.000828125, 0.00152745)
+    DoFs=(0/0/57436) (0/1/57437) (0/2/57438) (0/3/57439) (1/0/117326) (1/0/117327) (1/0/117328) (1/1/118177) 
+    1  Node id()=28701, processor_id()=39, Point=(x,y,z)=(0.000221354, 0.000828125, 0.00154226)
+    DoFs=(0/0/57440) (0/1/57441) (0/2/57442) (0/3/57443) (1/0/117329) (1/0/117330) (1/0/117331) (1/1/118178) 
+    2  Node id()=28716, processor_id()=39, Point=(x,y,z)=(0.000221354, 0.000832031, 0.00154084)
+    DoFs=(0/0/57444) (0/1/57445) (0/2/57446) (0/3/57447) (1/0/117332) (1/0/117333) (1/0/117334) (1/1/118179) 
+    3  Node id()=28717, processor_id()=39, Point=(x,y,z)=(0.000208333, 0.000832031, 0.00152652)
+    DoFs=(0/0/57448) (0/1/57449) (0/2/57450) (0/3/57451) (1/0/117335) (1/0/117336) (1/0/117337) (1/1/118180) 
+    4  Node id()=2824, processor_id()=39, Point=(x,y,z)=(0.000208333, 0.000828125, 0.00152737)
+    DoFs=(0/0/57476) (0/1/57477) (0/2/57478) (0/3/57479) (1/0/117356) (1/0/117357) (1/0/117358) (1/1/118187) 
+    5  Node id()=28705, processor_id()=39, Point=(x,y,z)=(0.000221354, 0.000828125, 0.00154706)
+    DoFs=(0/0/57480) (0/1/57481) (0/2/57482) (0/3/57483) (1/0/117359) (1/0/117360) (1/0/117361) (1/1/118188) 
+    6  Node id()=28720, processor_id()=39, Point=(x,y,z)=(0.000221354, 0.000832031, 0.00154526)
+    DoFs=(0/0/57484) (0/1/57485) (0/2/57486) (0/3/57487) (1/0/117362) (1/0/117363) (1/0/117364) (1/1/118189) 
+    7  Node id()=28721, processor_id()=39, Point=(x,y,z)=(0.000208333, 0.000832031, 0.00152645)
+    DoFs=(0/0/57488) (0/1/57489) (0/2/57490) (0/3/57491) (1/0/117365) (1/0/117366) (1/0/117367) (1/1/118190) 
+   n_sides()=6
+    neighbor(0)=23680
+    neighbor(1)=23678
+    neighbor(2)=23685
+    neighbor(3)=23686
+    neighbor(4)=33293
+    neighbor(5)=nullptr
+   hmin()=7.45024e-08, hmax()=2.4694e-05
+   volume()=1.15277e-16
+   active()=1, ancestor()=0, subactive()=0, has_children()=0
+   parent()=8628
+   level()=5, p_level()=0
+   refinement_flag()=DO_NOTHING
+   p_refinement_flag()=DO_NOTHING
+   DoFs=(1/2/119046) (1/3/119047) (1/4/119048) (1/5/119049) (1/6/119050) (1/7/119051) 
+  Elem Information
+   id()=23660, unique_id()=198998, subdomain_id()=0, processor_id()=40
+   type()=HEX8
+   dim()=3
+   n_nodes()=8
+   mapping=LAGRANGE_MAP
+    0  Node id()=24212, processor_id()=40, Point=(x,y,z)=(0.000208333, 0.0008125, 0.00153089)
+    DoFs=(0/0/59072) (0/1/59073) (0/2/59074) (0/3/59075) (1/0/120510) (1/0/120511) (1/0/120512) (1/1/121184) 
+    1  Node id()=24211, processor_id()=40, Point=(x,y,z)=(0.000221354, 0.0008125, 0.00154716)
+    DoFs=(0/0/59076) (0/1/59077) (0/2/59078) (0/3/59079) (1/0/120513) (1/0/120514) (1/0/120515) (1/1/121185) 
+    2  Node id()=28687, processor_id()=40, Point=(x,y,z)=(0.000221354, 0.000816406, 0.00154613)
+    DoFs=(0/0/59080) (0/1/59081) (0/2/59082) (0/3/59083) (1/0/120516) (1/0/120517) (1/0/120518) (1/1/121186) 
+    3  Node id()=28688, processor_id()=40, Point=(x,y,z)=(0.000208333, 0.000816406, 0.00153009)
+    DoFs=(0/0/59084) (0/1/59085) (0/2/59086) (0/3/59087) (1/0/120519) (1/0/120520) (1/0/120521) (1/1/121187) 
+    4  Node id()=1382, processor_id()=40, Point=(x,y,z)=(0.000208333, 0.0008125, 0.00153089)
+    DoFs=(0/0/59108) (0/1/59109) (0/2/59110) (0/3/59111) (1/0/120537) (1/0/120538) (1/0/120539) (1/1/121193) 
+    5  Node id()=24215, processor_id()=40, Point=(x,y,z)=(0.000221354, 0.0008125, 0.00155371)
+    DoFs=(0/0/59112) (0/1/59113) (0/2/59114) (0/3/59115) (1/0/120540) (1/0/120541) (1/0/120542) (1/1/121194) 
+    6  Node id()=28692, processor_id()=40, Point=(x,y,z)=(0.000221354, 0.000816406, 0.00155218)
+    DoFs=(0/0/59116) (0/1/59117) (0/2/59118) (0/3/59119) (1/0/120543) (1/0/120544) (1/0/120545) (1/1/121195) 
+    7  Node id()=28693, processor_id()=40, Point=(x,y,z)=(0.000208333, 0.000816406, 0.00153005)
+    DoFs=(0/0/59120) (0/1/59121) (0/2/59122) (0/3/59123) (1/0/120546) (1/0/120547) (1/0/120548) (1/1/121196) 
+   n_sides()=6
+    neighbor(0)=23656
+    neighbor(1)=19998
+    neighbor(2)=23661
+    neighbor(3)=23662
+    neighbor(4)=28317
+    neighbor(5)=nullptr
+   hmin()=6.81046e-09, hmax()=2.72815e-05
+   volume()=1.59616e-16
+   active()=1, ancestor()=0, subactive()=0, has_children()=0
+   parent()=8620
+   level()=5, p_level()=0
+   refinement_flag()=DO_NOTHING
+   p_refinement_flag()=DO_NOTHING
+   DoFs=(1/2/122092) (1/3/122093) (1/4/122094) (1/5/122095) (1/6/122096) (1/7/122097) 
+  Elem Information
+   id()=23630, unique_id()=198864, subdomain_id()=0, processor_id()=134
+   type()=HEX8
+   dim()=3
+   n_nodes()=8
+   mapping=LAGRANGE_MAP
+    0  Node id()=28652, processor_id()=134, Point=(x,y,z)=(0.000208333, 0.000667969, 0.00152652)
+    DoFs=(0/0/183932) (0/1/183933) (0/2/183934) (0/3/183935) (1/0/390031) (1/0/390032) (1/0/390033) (1/1/390776) 
+    1  Node id()=28651, processor_id()=134, Point=(x,y,z)=(0.000221354, 0.000667969, 0.00154084)
+    DoFs=(0/0/183936) (0/1/183937) (0/2/183938) (0/3/183939) (1/0/390034) (1/0/390035) (1/0/390036) (1/1/390777) 
+    2  Node id()=28653, processor_id()=134, Point=(x,y,z)=(0.000221354, 0.000671875, 0.00154226)
+    DoFs=(0/0/183940) (0/1/183941) (0/2/183942) (0/3/183943) (1/0/390037) (1/0/390038) (1/0/390039) (1/1/390778) 
+    3  Node id()=28654, processor_id()=134, Point=(x,y,z)=(0.000208333, 0.000671875, 0.00152745)
+    DoFs=(0/0/183944) (0/1/183945) (0/2/183946) (0/3/183947) (1/0/390040) (1/0/390041) (1/0/390042) (1/1/390779) 
+    4  Node id()=28656, processor_id()=134, Point=(x,y,z)=(0.000208333, 0.000667969, 0.00152645)
+    DoFs=(0/0/183948) (0/1/183949) (0/2/183950) (0/3/183951) (1/0/390043) (1/0/390044) (1/0/390045) (1/1/390780) 
+    5  Node id()=28655, processor_id()=134, Point=(x,y,z)=(0.000221354, 0.000667969, 0.00154526)
+    DoFs=(0/0/183952) (0/1/183953) (0/2/183954) (0/3/183955) (1/0/390046) (1/0/390047) (1/0/390048) (1/1/390781) 
+    6  Node id()=28657, processor_id()=134, Point=(x,y,z)=(0.000221354, 0.000671875, 0.00154706)
+    DoFs=(0/0/183956) (0/1/183957) (0/2/183958) (0/3/183959) (1/0/390049) (1/0/390050) (1/0/390051) (1/1/390782) 
+    7  Node id()=2737, processor_id()=134, Point=(x,y,z)=(0.000208333, 0.000671875, 0.00152737)
+    DoFs=(0/0/183960) (0/1/183961) (0/2/183962) (0/3/183963) (1/0/390052) (1/0/390053) (1/0/390054) (1/1/390783) 
+   n_sides()=6
+    neighbor(0)=23626
+    neighbor(1)=23628
+    neighbor(2)=23631
+    neighbor(3)=23636
+    neighbor(4)=33271
+    neighbor(5)=nullptr
+   hmin()=7.45024e-08, hmax()=2.4694e-05
+   volume()=1.15277e-16
+   active()=1, ancestor()=0, subactive()=0, has_children()=0
+   parent()=8542
+   level()=5, p_level()=0
+   refinement_flag()=DO_NOTHING
+   p_refinement_flag()=DO_NOTHING
+   DoFs=(1/2/391606) (1/3/391607) (1/4/391608) (1/5/391609) (1/6/391610) (1/7/391611) 
+  Elem Information
+   id()=23622, unique_id()=198849, subdomain_id()=0, processor_id()=137
+   type()=HEX8
+   dim()=3
+   n_nodes()=8
+   mapping=LAGRANGE_MAP
+    0  Node id()=28645, processor_id()=137, Point=(x,y,z)=(0.000208333, 0.000660156, 0.00152459)
+    DoFs=(0/0/187620) (0/1/187621) (0/2/187622) (0/3/187623) (1/0/398273) (1/0/398274) (1/0/398275) (1/1/398898) 
+    1  Node id()=28644, processor_id()=137, Point=(x,y,z)=(0.000221354, 0.000660156, 0.0015379)
+    DoFs=(0/0/187616) (0/1/187617) (0/2/187618) (0/3/187619) (1/0/398270) (1/0/398271) (1/0/398272) (1/1/398897) 
+    2  Node id()=28646, processor_id()=137, Point=(x,y,z)=(0.000221354, 0.000664062, 0.00153934)
+    DoFs=(0/0/187628) (0/1/187629) (0/2/187630) (0/3/187631) (1/0/398279) (1/0/398280) (1/0/398281) (1/1/398900) 
+    3  Node id()=28647, processor_id()=137, Point=(x,y,z)=(0.000208333, 0.000664062, 0.00152559)
+    DoFs=(0/0/187632) (0/1/187633) (0/2/187634) (0/3/187635) (1/0/398282) (1/0/398283) (1/0/398284) (1/1/398901) 
+    4  Node id()=28649, processor_id()=137, Point=(x,y,z)=(0.000208333, 0.000660156, 0.00152462)
+    DoFs=(0/0/187640) (0/1/187641) (0/2/187642) (0/3/187643) (1/0/398288) (1/0/398289) (1/0/398290) (1/1/398903) 
+    5  Node id()=28648, processor_id()=137, Point=(x,y,z)=(0.000221354, 0.000660156, 0.00154159)
+    DoFs=(0/0/187636) (0/1/187637) (0/2/187638) (0/3/187639) (1/0/398285) (1/0/398286) (1/0/398287) (1/1/398902) 
+    6  Node id()=28650, processor_id()=137, Point=(x,y,z)=(0.000221354, 0.000664062, 0.00154343)
+    DoFs=(0/0/187644) (0/1/187645) (0/2/187646) (0/3/187647) (1/0/398291) (1/0/398292) (1/0/398293) (1/1/398904) 
+    7  Node id()=10619, processor_id()=137, Point=(x,y,z)=(0.000208333, 0.000664062, 0.00152552)
+    DoFs=(0/0/187648) (0/1/187649) (0/2/187650) (0/3/187651) (1/0/398294) (1/0/398295) (1/0/398296) (1/1/398905) 
+   n_sides()=6
+    neighbor(0)=23618
+    neighbor(1)=23620
+    neighbor(2)=23623
+    neighbor(3)=23628
+    neighbor(4)=33263
+    neighbor(5)=nullptr
+   hmin()=2.81102e-08, hmax()=2.32283e-05
+   volume()=9.83726e-17
+   active()=1, ancestor()=0, subactive()=0, has_children()=0
+   parent()=8540
+   level()=5, p_level()=0
+   refinement_flag()=DO_NOTHING
+   p_refinement_flag()=DO_NOTHING
+   DoFs=(1/2/399946) (1/3/399947) (1/4/399948) (1/5/399949) (1/6/399950) (1/7/399951) 
+malloc(): invalid size (unsorted)
+[wr1n2:00675] *** Process received signal ***
+[wr1n2:00675] Signal: Aborted (6)
+[wr1n2:00675] Signal code:  (129014688)
+[wr1n2:00675] [ 0] /lib64/libc.so.6(+0x4e5b0)[0x1555405cd5b0]
+[wr1n2:00675] [ 1] /lib64/libc.so.6(gsignal+0x10f)[0x1555405cd52f]
+[wr1n2:00675] [ 2] /lib64/libc.so.6(abort+0x127)[0x1555405a0e65]
+[wr1n2:00675] [ 3] /lib64/libc.so.6(+0x8f807)[0x15554060e807]
+[wr1n2:00675] [ 4] /lib64/libc.so.6(+0x96b0c)[0x155540615b0c]
+[wr1n2:00675] [ 5] /lib64/libc.so.6(+0x99d34)[0x155540618d34]
+[wr1n2:00675] [ 6] /lib64/libc.so.6(__libc_malloc+0x1f2)[0x15554061a4b2]
+[wr1n2:00675] [ 7] /lib64/libstdc++.so.6(_Znwm+0x1c)[0x1555413e0d7c]
+[wr1n2:00675] [ 8] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZNSt6vectorIlSaIlEE17_M_default_appendEm+0x169)[0x155553c65849]
+[wr1n2:00675] [ 9] /opt/libmesh/lib/libmesh_opt.so.0(_ZN7libMesh16MetisPartitioner15partition_rangeERNS_8MeshBaseENS1_16element_iteratorES3_j+0x3070)[0x15554f7438e0]
+[wr1n2:00675] [10] /opt/libmesh/lib/libmesh_opt.so.0(_ZN7libMesh16MetisPartitioner13_do_partitionERNS_8MeshBaseEj+0x53)[0x15554f7407c3]
+[wr1n2:00675] [11] /opt/libmesh/lib/libmesh_opt.so.0(_ZN7libMesh11Partitioner9partitionERNS_8MeshBaseEj+0x45)[0x15554f762b75]
+[wr1n2:00675] [12] /opt/libmesh/lib/libmesh_opt.so.0(_ZN7libMesh8MeshBase15prepare_for_useEv+0x6a)[0x15554f4547ca]
+[wr1n2:00675] [13] /opt/libmesh/lib/libmesh_opt.so.0(_ZN7libMesh14MeshRefinement27refine_and_coarsen_elementsEv+0x358)[0x15554f581bc8]
+[wr1n2:00675] [14] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN10Adaptivity9adaptMeshENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE+0x162)[0x155553934882]
+[wr1n2:00675] [15] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN13FEProblemBase9adaptMeshEv+0x192)[0x15555408f732]
+[wr1n2:00675] [16] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN13TransientBase21incrementStepOrRejectEv+0x3f0)[0x1555549371c0]
+[wr1n2:00675] [17] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN13TransientBase7executeEv+0x4d)[0x1555549314cd]
+[wr1n2:00675] [18] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN8MooseApp18executeExecutionerEv+0x21b)[0x1555538f2c4b]
+[wr1n2:00675] [19] /home/tengtsu/projects_moose/moose/framework/libmoose-opt.so.0(_ZN8MooseApp3runEv+0x499)[0x155553936339]
+[wr1n2:00675] [20] /home/tengtsu/projects_moose/moose/modules/navier_stokes/navier_stokes-opt[0x4053a9]
+[wr1n2:00675] [21] /lib64/libc.so.6(__libc_start_main+0xe5)[0x1555405b97e5]
+[wr1n2:00675] [22] /home/tengtsu/projects_moose/moose/modules/navier_stokes/navier_stokes-opt[0x4055fe]
+[wr1n2:00675] *** End of error message ***
+[wr1n4:00000] *** An error occurred in Socket closed
+[wr1n4:00000] *** reported by process [2335375361,109]
+[wr1n4:00000] *** on a NULL communicator
+[wr1n4:00000] *** Unknown error
+[wr1n4:00000] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[wr1n4:00000] ***    and MPI will try to terminate your MPI job as well)
+ /hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 436982 Aborted                 (core dumped) apptainer exec instance://${INSTANCE_NAME} $@
+--------------------------------------------------------------------------
+prterun has exited due to process rank 102 with PID 198898 on node wr1n4 calling
+"abort". This may have caused other processes in the application to be
+terminated by signals sent by prterun (as reported here).
+--------------------------------------------------------------------------

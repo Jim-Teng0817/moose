@@ -1,0 +1,12 @@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 225604 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 217720 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 216907 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 217702 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 225596 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 216909 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 217706 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 225598 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 216908 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+    Initializing Equation SystemsKilled
+slurmstepd: error: *** JOB 852082 ON wr4n1 CANCELLED AT 2025-10-23T18:40:59 ***
+slurmstepd: error: Detected 4 oom_kill events in StepId=852082.batch. Some of the step tasks have been OOM Killed.

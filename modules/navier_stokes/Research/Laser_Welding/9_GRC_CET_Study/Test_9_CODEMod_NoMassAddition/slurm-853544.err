@@ -1,0 +1,6 @@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 334316 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 334304 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 334510 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+/hpc-common/moose/containers/moose-dev-openmpi/2025.09.18_c30adc3f1a04a51762290f716fb532029b73bad42fa16fd451ffb7c416cf4603/bin/moose-dev-exec: line 183: 334315 Killed                  apptainer exec instance://${INSTANCE_NAME} $@
+slurmstepd: error: *** JOB 853544 ON wr15n34 CANCELLED AT 2025-10-25T10:46:39 ***
+slurmstepd: error: Detected 4 oom_kill events in StepId=853544.batch. Some of the step tasks have been OOM Killed.

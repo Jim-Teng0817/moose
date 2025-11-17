@@ -92,7 +92,17 @@ PointSamplerBase::finalize()
     // _global_found_points should contain all 1's at this point (ie every point was found by a
     // proc)
     if (pid == 0 && !_global_found_points[i])
-      mooseError("In ", name(), ", sample point not found: ", _points[i]);
+    {
+      // mooseError("In ", name(), ", sample point not found: ", _points[i]);     // Modified and Removed for CSV data points input (Jim March 30, 2025)
+
+      // mooseWarning("In ", name(), ", sample point not found: ", _points[i], ". Setting default value.");     // Added for CSV data points input (Jim March 30, 2025)
+
+      // _point_values[i] = std::vector<double>{300.0, 0.0, 0.0};     // Modified for CSV data points input (Jim Sep. 27, 2025) //set default value to be 300 K (Room Temp.), solidification rate, temperature gradient      SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);     // Added for CSV data points input (Jim March 30, 2025)
+      _point_values[i] = std::vector<double>{300.0};   // Modified for CSV data points input (Jim Nov. 04, 2025)
+
+      SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);   // Added for CSV data points input (Jim Nov. 05, 2025)
+      continue; // done for this point   // Added for CSV data points input (Jim Nov. 05, 2025)
+    }
 
     // only process that found the point has the value, and only process with max id should add
     if (pid == max_pid[i] && _found_points[i])
