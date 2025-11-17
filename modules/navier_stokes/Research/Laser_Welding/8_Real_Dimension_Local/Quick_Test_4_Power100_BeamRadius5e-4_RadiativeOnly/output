@@ -1,0 +1,307 @@
+[36mThe following total 1 aux variables:
+  mu
+are added for automatic output by MaterialOutputAction.[39m
+Framework Information:
+MOOSE Version:           git commit b5544f501e on 2025-10-10
+LibMesh Version:         
+PETSc Version:           3.23.4
+SLEPc Version:           3.23.2
+Current Time:            Tue Oct 14 16:43:38 2025
+Executable Timestamp:    Tue Oct 14 13:03:49 2025
+
+Input File(s):
+  /home/tsu-chun/projects_moose/moose/modules/navier_stokes/Research/Laser_Welding/8_Real_Dimension_Local/Quick_Test_4_Power100_BeamRadius5e-4/3d_ss_mod1.i
+
+Checkpoint:
+  Wall Time Interval:      Every 3600 s
+  User Checkpoint:         Outputs/checkpoint
+  # Checkpoints Kept:      2
+  Execute On:              TIMESTEP_END 
+
+Parallelism:
+  Num Processors:          10
+  Num Threads:             1
+
+Mesh: 
+  Parallel Type:           replicated
+  Mesh Dimension:          3
+  Spatial Dimension:       3
+  Nodes:                   
+    Total:                 2275
+    Local:                 288
+    Min/Max/Avg:           161/288/227
+  Elems:                   
+    Total:                 1728
+    Local:                 171
+    Min/Max/Avg:           168/177/172
+  Num Subdomains:          1
+  Num Partitions:          10
+  Partitioner:             metis
+
+Nonlinear System:
+  Num DOFs:                9100
+  Num Local DOFs:          1152
+  Variables:               { "T" "disp_x" "disp_y" "disp_z" } 
+  Finite Element Types:    "LAGRANGE" 
+  Approximation Orders:    "FIRST" 
+
+Auxiliary System:
+  Num DOFs:                10828
+  Num Local DOFs:          1323
+  Variables:               "vel" "p" "mu" 
+  Finite Element Types:    "LAGRANGE_VEC" "LAGRANGE" "MONOMIAL" 
+  Approximation Orders:    "FIRST" "FIRST" "CONSTANT" 
+
+Execution Information:
+  Executioner:             Transient
+  TimeStepper:             IterationAdaptiveDT
+  TimeIntegrator(s):       ImplicitEuler
+  Solver Mode:             NEWTON 
+  MOOSE Preconditioner:    SMP 
+
+Time Step 0, time = 0
+
+Postprocessor Values:
++----------------+----------------+----------------+----------------+
+| time           | nl             | num_dofs       | tot_nl         |
++----------------+----------------+----------------+----------------+
+|   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
++----------------+----------------+----------------+----------------+
+
+
+Time Step 1, time = 0.001, dt = 0.001
+    |residual|_2 of individual variables:
+                     T:      17.4938
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 0 Nonlinear |R| = [32m1.749385e+01[39m
+      0 Linear |R| = [32m1.749385e+01[39m
+      1 Linear |R| = [32m7.753719e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      2.5769
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 1 Nonlinear |R| = [32m2.576903e+00[39m
+      0 Linear |R| = [32m2.576903e+00[39m
+      1 Linear |R| = [32m1.229242e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.0418186
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 2 Nonlinear |R| = [32m4.181857e-02[39m
+      0 Linear |R| = [32m4.181857e-02[39m
+      1 Linear |R| = [32m2.506296e-17[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      1.52934e-05
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 3 Nonlinear |R| = [32m1.529340e-05[39m
+      0 Linear |R| = [32m1.529340e-05[39m
+      1 Linear |R| = [32m6.531179e-21[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      2.76699e-12
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 4 Nonlinear |R| = [32m2.766986e-12[39m
+  Nonlinear solve converged due to CONVERGED_FNORM_ABS iterations 4
+[32m Solve Converged![39m
+
+Outlier Variable Residual Norms:
+  T: [31m2.766986e-12[39m
+
+Postprocessor Values:
++----------------+----------------+----------------+----------------+
+| time           | nl             | num_dofs       | tot_nl         |
++----------------+----------------+----------------+----------------+
+|   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
+|   1.000000e-03 |   4.000000e+00 |   9.100000e+03 |   4.000000e+00 |
++----------------+----------------+----------------+----------------+
+
+
+Time Step 2, time = 0.002, dt = 0.001
+    |residual|_2 of individual variables:
+                     T:      13.9836
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 0 Nonlinear |R| = [32m1.398361e+01[39m
+      0 Linear |R| = [32m1.398361e+01[39m
+      1 Linear |R| = [32m4.499448e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.93455
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 1 Nonlinear |R| = [32m9.345498e-01[39m
+      0 Linear |R| = [32m9.345498e-01[39m
+      1 Linear |R| = [32m3.729892e-16[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.00405934
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 2 Nonlinear |R| = [32m4.059335e-03[39m
+      0 Linear |R| = [32m4.059335e-03[39m
+      1 Linear |R| = [32m1.520266e-18[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      9.55063e-08
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 3 Nonlinear |R| = [32m9.550628e-08[39m
+  Nonlinear solve converged due to CONVERGED_FNORM_ABS iterations 3
+[32m Solve Converged![39m
+
+Outlier Variable Residual Norms:
+  T: [31m9.550628e-08[39m
+
+Postprocessor Values:
++----------------+----------------+----------------+----------------+
+| time           | nl             | num_dofs       | tot_nl         |
++----------------+----------------+----------------+----------------+
+|   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
+|   1.000000e-03 |   4.000000e+00 |   9.100000e+03 |   4.000000e+00 |
+|   2.000000e-03 |   3.000000e+00 |   9.100000e+03 |   7.000000e+00 |
++----------------+----------------+----------------+----------------+
+
+
+Time Step 3, time = 0.003, dt = 0.001
+    |residual|_2 of individual variables:
+                     T:      11.8046
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 0 Nonlinear |R| = [32m1.180464e+01[39m
+      0 Linear |R| = [32m1.180464e+01[39m
+      1 Linear |R| = [32m3.808031e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.420539
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 1 Nonlinear |R| = [32m4.205388e-01[39m
+      0 Linear |R| = [32m4.205388e-01[39m
+      1 Linear |R| = [32m1.546317e-16[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.000635091
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 2 Nonlinear |R| = [32m6.350906e-04[39m
+      0 Linear |R| = [32m6.350906e-04[39m
+      1 Linear |R| = [32m1.921479e-19[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      1.78291e-09
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 3 Nonlinear |R| = [32m1.782915e-09[39m
+  Nonlinear solve converged due to CONVERGED_FNORM_ABS iterations 3
+[32m Solve Converged![39m
+
+Outlier Variable Residual Norms:
+  T: [31m1.782915e-09[39m
+
+Postprocessor Values:
++----------------+----------------+----------------+----------------+
+| time           | nl             | num_dofs       | tot_nl         |
++----------------+----------------+----------------+----------------+
+|   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
+|   1.000000e-03 |   4.000000e+00 |   9.100000e+03 |   4.000000e+00 |
+|   2.000000e-03 |   3.000000e+00 |   9.100000e+03 |   7.000000e+00 |
+|   3.000000e-03 |   3.000000e+00 |   9.100000e+03 |   1.000000e+01 |
++----------------+----------------+----------------+----------------+
+
+
+Time Step 4, time = 0.004, dt = 0.001
+    |residual|_2 of individual variables:
+                     T:      10.5841
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 0 Nonlinear |R| = [32m1.058411e+01[39m
+      0 Linear |R| = [32m1.058411e+01[39m
+      1 Linear |R| = [32m3.437746e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.249637
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 1 Nonlinear |R| = [32m2.496373e-01[39m
+      0 Linear |R| = [32m2.496373e-01[39m
+      1 Linear |R| = [32m1.203989e-16[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.000163249
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 2 Nonlinear |R| = [32m1.632486e-04[39m
+      0 Linear |R| = [32m1.632486e-04[39m
+      1 Linear |R| = [32m6.271466e-20[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      8.9267e-11
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 3 Nonlinear |R| = [32m8.926702e-11[39m
+  Nonlinear solve converged due to CONVERGED_FNORM_ABS iterations 3
+[32m Solve Converged![39m
+
+Outlier Variable Residual Norms:
+  T: [31m8.926702e-11[39m
+
+Postprocessor Values:
++----------------+----------------+----------------+----------------+
+| time           | nl             | num_dofs       | tot_nl         |
++----------------+----------------+----------------+----------------+
+|   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |   0.000000e+00 |
+|   1.000000e-03 |   4.000000e+00 |   9.100000e+03 |   4.000000e+00 |
+|   2.000000e-03 |   3.000000e+00 |   9.100000e+03 |   7.000000e+00 |
+|   3.000000e-03 |   3.000000e+00 |   9.100000e+03 |   1.000000e+01 |
+|   4.000000e-03 |   3.000000e+00 |   9.100000e+03 |   1.300000e+01 |
++----------------+----------------+----------------+----------------+
+
+
+Time Step 5, time = 0.005, dt = 0.001
+    |residual|_2 of individual variables:
+                     T:      9.81245
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 0 Nonlinear |R| = [32m9.812451e+00[39m
+      0 Linear |R| = [32m9.812451e+00[39m
+      1 Linear |R| = [32m3.328496e-15[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      0.186854
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 1 Nonlinear |R| = [32m1.868542e-01[39m
+      0 Linear |R| = [32m1.868542e-01[39m
+      1 Linear |R| = [32m8.838122e-17[39m
+    Linear solve converged due to CONVERGED_RTOL iterations 1
+    |residual|_2 of individual variables:
+                     T:      8.49008e-05
+                     disp_x: 0
+                     disp_y: 0
+                     disp_z: 0
+ 2 Nonlinear |R| = [32m8.490083e-05[39m
