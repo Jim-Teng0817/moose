@@ -19,7 +19,11 @@ include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
 # Module
-MODULE_NAME := navier_stokes
+# MODULE_NAME := navier_stokes
+
+NAVIER_STOKES               := yes       ## https://mooseframework.inl.gov/getting_started/new_users.html
+STOCHASTIC_TOOLS            := yes
+
 include $(MODULE_DIR)/modules.mk
 
 ###############################################################################
