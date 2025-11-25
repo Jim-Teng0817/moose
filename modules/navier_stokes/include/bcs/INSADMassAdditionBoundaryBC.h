@@ -28,6 +28,10 @@ protected:
   const Real & _u_old;        // previous mesh displacement component
   const ADVariableValue & _T; // temperature
   const Real _v_dep;          // deposition speed (m/s)
+
+  const Real _F;              // powder feeding rate (g/min)               // Added for ALE Mod. PFR (Jim Nov. 17, 2025)
+  const Real _v_s;            // laser scan velocity (m/s)                 // Added for ALE Mod. PFR (Jim Nov. 17, 2025)
+
   const Real _T_act;          // activation temperature (K)
   const Real _smooth_w;       // smoothing width for Heaviside (K)
 };
