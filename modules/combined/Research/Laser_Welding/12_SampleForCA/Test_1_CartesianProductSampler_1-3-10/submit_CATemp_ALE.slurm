@@ -43,18 +43,7 @@ module load use.moose moose-dev-openmpi/2025.09.18
 ##module load PETSc
 ##export OMP_NUM_THREADS=1
 
-# export MOOSE_LIBRARY_PATH=\
-# /home/tengtsu/projects_moose/moose/modules/stochastic_tools/lib:\
-# /home/tengtsu/projects_moose/moose/modules/navier_stokes/lib:\
-# /home/tengtsu/projects_moose/moose/modules/wasp/lib:\
-# /home/tengtsu/projects_moose/moose/lib
-
-# export LD_LIBRARY_PATH=\
-# /home/tengtsu/projects_moose/moose/modules/stochastic_tools/lib:\
-# /home/tengtsu/projects_moose/moose/modules/navier_stokes/lib:\
-# /home/tengtsu/projects_moose/moose/modules/wasp/lib:\
-# /home/tengtsu/projects_moose/moose/lib:\
-# $LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/projects_moose/moose/framework/contrib/wasp/install/lib
 
 ##which mpiexec
 

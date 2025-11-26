@@ -43,22 +43,12 @@ module load use.moose moose-dev-openmpi/2025.09.18
 ##module load PETSc
 ##export OMP_NUM_THREADS=1
 
-# export MOOSE_LIBRARY_PATH=\
-# /home/tengtsu/projects_moose/moose/modules/stochastic_tools/lib:\
-# /home/tengtsu/projects_moose/moose/modules/navier_stokes/lib:\
-# /home/tengtsu/projects_moose/moose/modules/wasp/lib:\
-# /home/tengtsu/projects_moose/moose/lib
 
-# export LD_LIBRARY_PATH=\
-# /home/tengtsu/projects_moose/moose/modules/stochastic_tools/lib:\
-# /home/tengtsu/projects_moose/moose/modules/navier_stokes/lib:\
-# /home/tengtsu/projects_moose/moose/modules/wasp/lib:\
-# /home/tengtsu/projects_moose/moose/lib:\
-# $LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/projects_moose/moose/framework/contrib/wasp/install/lib
 
 ##which mpiexec
 
-mpiexec -n 47 /home/tengtsu/projects_moose/moose/modules/combined/combined-opt -i 3d_ss_mod1.i -log_view >> 2025_11_20_MOOSE_ALE_TempField.log
+mpiexec -n 47 /home/tengtsu/projects_moose/moose/modules/navier_stokes/navier_stokes-opt -i 3d_ss_mod1.i -log_view >> 2025_11_20_MOOSE_ALE_TempField.log
 ## mpiexec -n 48 moose-dev-exec $HOME/projects/marmot/marmot-opt -i 2024_09_11_darkzone_subgrain_nuc4_T1000_scaling3_baseline.i -log_view >> 2024_09_11_darkzone_subgrain_nuc4_T1000_scaling3_baseline.log
 ## mpiexec $HOME/projects/marmot/marmot-opt -i HBS_bub_vol_test.i -log_view >> HBS_bub_vol_test.log
 
