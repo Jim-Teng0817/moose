@@ -7,7 +7,7 @@
 
 #SBATCH --ntasks-per-node=47 # number of processor cores (i.e. tasks)
 
-#SBATCH --nodes=1 # number of nodes
+#SBATCH --nodes=3 # number of nodes
 
 #SBATCH --wckey=ne_ldrd # Project Code
 
@@ -43,9 +43,10 @@ module load use.moose moose-dev-openmpi/2025.11.24
 ##module load PETSc
 ##export OMP_NUM_THREADS=1
 
+
 ##which mpiexec
 
-mpiexec -n 47 /home/tengtsu/projects_moose/moose/modules/navier_stokes/navier_stokes-opt -i 3d_ss_mod1.i -log_view >> 2025_11_20_MOOSE_ALE_TempField.log
+mpiexec -n 141 moose-dev-exec /home/tengtsu/projects_moose/moose/modules/navier_stokes/navier_stokes-opt -i 3d_ss_mod1.i -log_view >> 2025_11_20_MOOSE_ALE_TempField.log
 ## mpiexec -n 48 moose-dev-exec $HOME/projects/marmot/marmot-opt -i 2024_09_11_darkzone_subgrain_nuc4_T1000_scaling3_baseline.i -log_view >> 2024_09_11_darkzone_subgrain_nuc4_T1000_scaling3_baseline.log
 ## mpiexec $HOME/projects/marmot/marmot-opt -i HBS_bub_vol_test.i -log_view >> HBS_bub_vol_test.log
 
