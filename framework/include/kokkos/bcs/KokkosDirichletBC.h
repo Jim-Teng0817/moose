@@ -21,7 +21,10 @@ public:
 
   KokkosDirichletBC(const InputParameters & parameters);
 
-  KOKKOS_FUNCTION Real computeValue(const ContiguousNodeID /* node */) const { return _value; }
+  KOKKOS_FUNCTION Real computeValue(const unsigned int /* qp */, AssemblyDatum & /* datum */) const
+  {
+    return _value;
+  }
 
 protected:
   const Moose::Kokkos::Scalar<const Real> _value;
@@ -44,16 +47,10 @@ KokkosDirichletBC<DirichletBC>::KokkosDirichletBC(const InputParameters & parame
 {
 }
 
-class KokkosDirichletBCKernel final : public KokkosDirichletBC<KokkosDirichletBCKernel>
+class KokkosDirichletBCWrapper final : public KokkosDirichletBC<KokkosDirichletBCWrapper>
 {
 public:
   static InputParameters validParams();
 
-  KokkosDirichletBCKernel(const InputParameters & parameters);
+  KokkosDirichletBCWrapper(const InputParameters & parameters);
 };
-
-#define usingKokkosDirichletBCMembers(T)                                                           \
-  usingKokkosDirichletBCBaseMembers(T);                                                            \
-                                                                                                   \
-protected:                                                                                         \
-  using KokkosDirichletBC<T>::_value

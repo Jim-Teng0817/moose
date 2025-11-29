@@ -171,12 +171,12 @@ public:
    * @tparam T The property data type
    * @tparam dimension The property dimension
    * @tparam state The property state
-   * @param prop_name The property name
+   * @param prop_name_in The property name
    * @returns The Kokkos material property
    */
   template <typename T, unsigned int dimension = 0, unsigned int state = 0>
   Moose::Kokkos::MaterialProperty<T, dimension>
-  getKokkosMaterialPropertyByName(const std::string & prop_name);
+  getKokkosMaterialPropertyByName(const std::string & prop_name_in);
   /**
    * Get an old Kokkos material property by property name
    * @tparam T The property data type
@@ -571,8 +571,10 @@ protected:
   /// Current threaded it
   const THREAD_ID _mi_tid;
 
+#ifdef MOOSE_KOKKOS_ENABLED
   /// Whether the MOOSE object is a Kokkos object
   const bool _is_kokkos_object;
+#endif
 
   /// The type of data
   const Moose::MaterialDataType _material_data_type;
@@ -586,6 +588,19 @@ protected:
    * getMaterialProperty method
    */
   virtual void checkMaterialProperty(const std::string & name, const unsigned int state);
+
+#ifdef MOOSE_KOKKOS_ENABLED
+  /**
+   * A virtual method that can be overriden by Kokkos objects to insert additional operations in
+   * getKokkosMaterialProperty
+   * @param prop_name_in The property name
+   * @param state The property state
+   */
+  virtual void getKokkosMaterialPropertyHook(const std::string & /* prop_name_in */,
+                                             const unsigned int /* state */)
+  {
+  }
+#endif
 
   /**
    * A proxy method for _mi_feproblem.markMatPropRequested(name)
@@ -903,8 +918,11 @@ MaterialPropertyInterface::getGenericMaterialPropertyByName(const MaterialProper
                                                             MaterialData & material_data,
                                                             const unsigned int state)
 {
+#ifdef MOOSE_KOKKOS_ENABLED
   if (_is_kokkos_object)
-    mooseError("Attempted to retrieve a standard MOOSE material property from a Kokkos object.");
+    _mi_moose_object.mooseError(
+        "Attempted to retrieve a standard MOOSE material property from a Kokkos object.");
+#endif
 
   if (_use_interpolated_state)
   {
@@ -963,20 +981,26 @@ MaterialPropertyInterface::hasKokkosMaterialPropertyByName(const std::string & n
 
 template <typename T, unsigned int dimension, unsigned int state>
 Moose::Kokkos::MaterialProperty<T, dimension>
-MaterialPropertyInterface::getKokkosMaterialPropertyByName(const std::string & prop_name)
+MaterialPropertyInterface::getKokkosMaterialPropertyByName(const std::string & prop_name_in)
 {
   if (!_is_kokkos_object)
-    mooseError("Attempted to retrieve a Kokkos material property from a standard MOOSE object.");
+    _mi_moose_object.mooseError(
+        "Attempted to retrieve a Kokkos material property from a standard MOOSE object.");
 
   if constexpr (std::is_same_v<T, Real>)
   {
-    std::istringstream ss(prop_name);
+    std::istringstream ss(prop_name_in);
     Real value;
 
     // Check if the string parsed cleanly into a Real number
     if (ss >> value && ss.eof())
       return Moose::Kokkos::MaterialProperty<T, dimension>(value);
   }
+
+  const auto prop_name =
+      _get_suffix.empty()
+          ? static_cast<const std::string &>(prop_name_in)
+          : MooseUtils::join(std::vector<std::string>({prop_name_in, _get_suffix}), "_");
 
   checkExecutionStage();
   checkMaterialProperty(prop_name, state);
@@ -995,6 +1019,8 @@ MaterialPropertyInterface::getKokkosMaterialPropertyByName(const std::string & p
 
   if constexpr (state == 0)
     addConsumedPropertyName(_mi_moose_object_name, prop_name);
+
+  getKokkosMaterialPropertyHook(prop_name_in, state);
 
   return prop;
 }

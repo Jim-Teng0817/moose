@@ -36,7 +36,6 @@
 #include "ConsoleUtils.h"
 #include "JsonSyntaxTree.h"
 #include "JsonInputFileFormatter.h"
-#include "SONDefinitionFormatter.h"
 #include "RelationshipManager.h"
 #include "ProxyRelationshipManager.h"
 #include "Registry.h"
@@ -56,6 +55,7 @@
 #include "MooseMain.h"
 #include "FEProblemBase.h"
 #include "Parser.h"
+#include "CSGBase.h"
 
 // Regular expression includes
 #include "pcrecpp.h"
@@ -89,8 +89,6 @@
 
 using namespace libMesh;
 
-#define QUOTE(macro) stringifyName(macro)
-
 void
 MooseApp::addAppParam(InputParameters & params)
 {
@@ -120,7 +118,12 @@ MooseApp::validParams()
       "--mesh-only <optional path>",
       "",
       "Build and output the mesh only (Default: \"<input_file_name>_in.e\")");
-
+  params.addOptionalValuedCommandLineParam<std::string>(
+      "csg_only",
+      "--csg-only <optional path>",
+      "",
+      "Setup and output the input mesh in CSG format only (Default: "
+      "\"<input_file_name>_out_csg.json\")");
   params.addCommandLineParam<bool>(
       "show_input", "--show-input", "Shows the parsed input file before running the simulation");
   params.setGlobalCommandLineParam("show_input");
@@ -151,8 +154,6 @@ MooseApp::validParams()
       "--language-server",
       "Starts a process to communicate with development tools using the language server protocol");
 
-  params.addCommandLineParam<bool>(
-      "definition", "--definition", "Shows a SON style input definition dump for input validation");
   params.addCommandLineParam<bool>("dump", "--dump", "Shows a dump of available input file syntax");
   params.addCommandLineParam<std::string>(
       "dump_search",
@@ -696,8 +697,7 @@ MooseApp::MooseApp(const InputParameters & parameters)
                  "about adding your debugger.");
 
     // Finish up the command
-    command_stream << "\""
-                   << " & ";
+    command_stream << "\"" << " & ";
     std::string command_string = command_stream.str();
     Moose::out << "Running: " << command_string << std::endl;
 
@@ -1455,18 +1455,6 @@ MooseApp::setupOptions()
     _early_exit_param = "--registry_hit";
     _ready_to_exit = true;
   }
-  else if (getParam<bool>("definition"))
-  {
-    _perf_graph.disableLivePrint();
-
-    JsonSyntaxTree tree("");
-    _builder.buildJsonSyntaxTree(tree);
-    SONDefinitionFormatter formatter;
-    Moose::out << "%-START-SON-DEFINITION-%\n"
-               << formatter.toString(tree.getRoot()) << "\n%-END-SON-DEFINITION-%\n";
-    _early_exit_param = "--definition";
-    _ready_to_exit = true;
-  }
   else if (getParam<bool>("yaml") || isParamSetByUser("yaml_search"))
   {
     const std::string search =
@@ -1588,8 +1576,32 @@ MooseApp::setupOptions()
 
     // The following parameters set the final task and so are mutually exclusive.
     const std::vector<std::string> final_task_params = {
-        "mesh_only", "split_mesh", "parse_neml2_only"};
-    if (isExclusiveParamSetByUser(final_task_params, "mesh_only"))
+        "csg_only", "mesh_only", "split_mesh", "parse_neml2_only"};
+    if (isExclusiveParamSetByUser(final_task_params, "csg_only"))
+    {
+      // Error checking on incompatible command line options
+      if (_distributed_mesh_on_command_line)
+        mooseError("--csg-only cannot be used in conjunction with --distributed-mesh");
+      const bool has_mesh_split = isParamSetByUser("split_file") || _use_split;
+      if (has_mesh_split)
+        mooseError("--csg-only is not compatible with any mesh splitting options");
+      if (isParamSetByUser("refinements"))
+        mooseError("--csg-only cannot be used in conjunction with -r refinements option");
+      if (!isUltimateMaster())
+        mooseError("--csg-only option cannot be used as a Subapp");
+      if (_recover)
+        mooseError("--csg-only option cannot be used in recovery mode");
+
+      _syntax.registerTaskName("execute_csg_generators", true);
+      _syntax.addDependency("execute_csg_generators", "execute_mesh_generators");
+      _syntax.addDependency("recover_meta_data", "execute_csg_generators");
+
+      _syntax.registerTaskName("csg_only", true);
+      _syntax.addDependency("csg_only", "recover_meta_data");
+      _syntax.addDependency("set_mesh_base", "csg_only");
+      _action_warehouse.setFinalTask("csg_only");
+    }
+    else if (isExclusiveParamSetByUser(final_task_params, "mesh_only"))
     {
       // If we are looking to just check the input, there is no need to
       // call MeshOnlyAction and generate a mesh
@@ -1684,8 +1696,19 @@ MooseApp::setupOptions()
 
 #ifdef MOOSE_KOKKOS_ENABLED
   for (auto & action : _action_warehouse.allActionBlocks())
-    if (action->isParamValid("_kokkos_action"))
+  {
+    auto object_action = std::dynamic_pointer_cast<MooseObjectAction>(action);
+    if (object_action &&
+        object_action->getObjectParams().isParamValid(MooseBase::kokkos_object_param))
+    {
+      if (!isKokkosAvailable())
+        mooseError("Attempted to add a ",
+                   object_action->getMooseObjectType(),
+                   " but no GPU was detected in the system.");
+
       _has_kokkos_objects = true;
+    }
+  }
 #endif
 
   Moose::out << std::flush;
@@ -1741,7 +1764,12 @@ MooseApp::runInputFile()
 
   _action_warehouse.executeAllActions();
 
-  if (isParamSetByUser("mesh_only"))
+  if (isParamSetByUser("csg_only"))
+  {
+    _early_exit_param = "--csg-only";
+    _ready_to_exit = true;
+  }
+  else if (isParamSetByUser("mesh_only"))
   {
     _early_exit_param = "--mesh-only";
     _ready_to_exit = true;
@@ -2217,12 +2245,12 @@ MooseApp::run()
   catch (Parser::Error & err)
   {
     mooseAssert(_parser->getThrowOnError(), "Should be true");
-    throw err;
+    throw;
   }
   catch (MooseRuntimeError & err)
   {
     mooseAssert(Moose::_throw_on_error, "Should be true");
-    throw err;
+    throw;
   }
   catch (std::exception & err)
   {

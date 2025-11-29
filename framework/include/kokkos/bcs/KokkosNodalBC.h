@@ -19,33 +19,20 @@ namespace Kokkos
 /**
  * The base class for a user to derive their own Kokkos nodal boundary conditions.
  *
- * The polymorphic design of the original MOOSE is reproduced statically by leveraging the Curiously
- * Recurring Template Pattern (CRTP), a programming idiom that involves a class template inheriting
- * from a template instantiation of itself. When the user derives their Kokkos object from this
- * class, the inheritance structure will look like:
+ * The user should define computeQpResidual(), computeQpJacobian(), and computeQpOffDiagJacobian()
+ * as inlined public methods in their derived class (not virtual override). The signature of
+ * computeQpResidual() expected to be defined in the derived class is as follows:
  *
- * class UserNodalBC final : public Moose::Kokkos::NodalBC<UserNodalBC>
- *
- * It is important to note that the template argument should point to the last derived class.
- * Therefore, if the user wants to define a derived class that can be further inherited, the derived
- * class should be a class template as well. Otherwise, it is recommended to mark the derived class
- * as final to prevent its inheritence by mistake.
- *
- * The user is expected to define computeQpResidual(), computeQpJacobian(), and
- * computeQpOffDiagJacobian() as inlined public methods in their derived class (not virtual
- * override). The signature of computeQpResidual() expected to be defined in the derived class is as
- * follows:
- *
- * @param node The contiguous node ID
+ * @param qp The dummy quadrature point index (= 0)
+ * @param datum The AssemblyDatum object of the current thread
  * @returns The residual contribution
  *
- * KOKKOS_FUNCTION Real computeQpResidual(const ContiguousNodeID node) const;
+ * KOKKOS_FUNCTION Real computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const;
  *
  * The signatures of computeQpJacobian() and computeOffDiagQpJacobian() can be found in the code
  * below, and their definition in the derived class is optional. If they are defined in the derived
  * class, they will hide the default definitions in the base class.
  */
-template <typename Derived>
 class NodalBC : public NodalBCBase
 {
 public:
@@ -72,20 +59,65 @@ public:
   ///@{
   /**
    * Compute diagonal Jacobian contribution on a node
-   * @param node The contiguous node ID
+   * @param qp The dummy quadrature point index (= 0)
+   * @param datum The AssemblyDatum object of the current thread
    * @returns The diagonal Jacobian contribution
    */
-  KOKKOS_FUNCTION Real computeQpJacobian(const ContiguousNodeID /* node */) const { return 1; }
+  KOKKOS_FUNCTION Real computeQpJacobian(const unsigned int /* qp */,
+                                         AssemblyDatum & /* datum */) const
+  {
+    return 1;
+  }
   /**
    * Compute off-diagonal Jacobian contribution on a node
    * @param jvar The variable number for column
-   * @param node The contiguous node ID
+   * @param qp The dummy quadrature point index (= 0)
+   * @param datum The AssemblyDatum object of the current thread
    * @returns The off-diagonal Jacobian contribution
    */
   KOKKOS_FUNCTION Real computeQpOffDiagJacobian(const unsigned int /* jvar */,
-                                                const ContiguousNodeID /* node */) const
+                                                const unsigned int /* qp */,
+                                                AssemblyDatum & /* datum */) const
   {
     return 0;
+  }
+  /**
+   * Get the function pointer of the default computeQpJacobian()
+   * @returns The function pointer
+   */
+  static auto defaultJacobian() { return &NodalBC::computeQpJacobian; }
+  /**
+   * Get the function pointer of the default computeQpOffDiagJacobian()
+   * @returns The function pointer
+   */
+  static auto defaultOffDiagJacobian() { return &NodalBC::computeQpOffDiagJacobian; }
+  ///@}
+
+  /**
+   * Shims for hook methods that can be leveraged to implement static polymorphism
+   */
+  ///{@
+  template <typename Derived>
+  KOKKOS_FUNCTION Real computeQpResidualShim(const Derived & bc,
+                                             const unsigned int qp,
+                                             AssemblyDatum & datum) const
+  {
+    return bc.computeQpResidual(qp, datum);
+  }
+  template <typename Derived>
+  KOKKOS_FUNCTION Real computeQpJacobianShim(const Derived & bc,
+                                             const unsigned int qp,
+                                             AssemblyDatum & datum) const
+  {
+    return bc.computeQpJacobian(qp, datum);
+  }
+  template <typename Derived>
+  KOKKOS_FUNCTION Real computeQpOffDiagJacobianShim(const Derived & bc,
+                                                    const unsigned int jvar,
+                                                    const unsigned int qp,
+                                                    AssemblyDatum & datum) const
+  {
+    return bc.computeQpOffDiagJacobian(jvar, qp, datum);
   }
   ///@}
 
@@ -93,101 +125,52 @@ public:
    * The parallel computation entry functions called by Kokkos
    */
   ///@{
-  KOKKOS_FUNCTION void operator()(ResidualLoop, const ThreadID tid) const;
-  KOKKOS_FUNCTION void operator()(JacobianLoop, const ThreadID tid) const;
-  KOKKOS_FUNCTION void operator()(OffDiagJacobianLoop, const ThreadID tid) const;
+  template <typename Derived>
+  KOKKOS_FUNCTION void operator()(ResidualLoop, const ThreadID tid, const Derived & bc) const;
+  template <typename Derived>
+  KOKKOS_FUNCTION void operator()(JacobianLoop, const ThreadID tid, const Derived & bc) const;
+  template <typename Derived>
+  KOKKOS_FUNCTION void
+  operator()(OffDiagJacobianLoop, const ThreadID tid, const Derived & bc) const;
   ///@}
 
 protected:
   /**
    * Current solution at nodes
    */
-  const VariableNodalValue _u;
-
-private:
-  /**
-   * Flag whether computeQpOffDiagJacobian() was not defined in the derived class
-   */
-  const bool _default_offdiag;
+  const VariableValue _u;
 };
 
 template <typename Derived>
-InputParameters
-NodalBC<Derived>::validParams()
-{
-  InputParameters params = NodalBCBase::validParams();
-  return params;
-}
-
-template <typename Derived>
-NodalBC<Derived>::NodalBC(const InputParameters & parameters)
-  : NodalBCBase(parameters, Moose::VarFieldType::VAR_FIELD_STANDARD),
-    _u(kokkosSystems(), _var),
-    _default_offdiag(&Derived::computeQpOffDiagJacobian == &NodalBC::computeQpOffDiagJacobian)
-{
-  addMooseVariableDependency(&_var);
-}
-
-template <typename Derived>
-void
-NodalBC<Derived>::computeResidual()
-{
-  ::Kokkos::RangePolicy<ResidualLoop, ExecSpace, ::Kokkos::IndexType<ThreadID>> policy(
-      0, numKokkosBoundaryNodes());
-  ::Kokkos::parallel_for(policy, *static_cast<Derived *>(this));
-  ::Kokkos::fence();
-}
-
-template <typename Derived>
-void
-NodalBC<Derived>::computeJacobian()
-{
-  ::Kokkos::RangePolicy<JacobianLoop, ExecSpace, ::Kokkos::IndexType<ThreadID>> policy(
-      0, numKokkosBoundaryNodes());
-  ::Kokkos::parallel_for(policy, *static_cast<Derived *>(this));
-  ::Kokkos::fence();
-
-  if (!_default_offdiag)
-  {
-    auto & sys = kokkosSystem(_kokkos_var.sys());
-
-    _thread.resize({sys.getCoupling(_kokkos_var.var()).size(), numKokkosBoundaryNodes()});
-
-    ::Kokkos::RangePolicy<OffDiagJacobianLoop, ExecSpace, ::Kokkos::IndexType<ThreadID>> policy(
-        0, _thread.size());
-    ::Kokkos::parallel_for(policy, *static_cast<Derived *>(this));
-    ::Kokkos::fence();
-  }
-}
-
-template <typename Derived>
 KOKKOS_FUNCTION void
-NodalBC<Derived>::operator()(ResidualLoop, const ThreadID tid) const
+NodalBC::operator()(ResidualLoop, const ThreadID tid, const Derived & bc) const
 {
-  auto bc = static_cast<const Derived *>(this);
   auto node = kokkosBoundaryNodeID(tid);
   auto & sys = kokkosSystem(_kokkos_var.sys());
 
   if (!sys.isNodalDefined(node, _kokkos_var.var()))
     return;
 
-  Real local_re = bc->computeQpResidual(node);
+  AssemblyDatum datum(node, kokkosAssembly(), kokkosSystems(), _kokkos_var, _kokkos_var.var());
+
+  Real local_re = bc.computeQpResidualShim(bc, 0, datum);
 
   accumulateTaggedNodalResidual(false, local_re, node);
 }
 
 template <typename Derived>
 KOKKOS_FUNCTION void
-NodalBC<Derived>::operator()(JacobianLoop, const ThreadID tid) const
+NodalBC::operator()(JacobianLoop, const ThreadID tid, const Derived & bc) const
 {
-  auto bc = static_cast<const Derived *>(this);
   auto node = kokkosBoundaryNodeID(tid);
   auto & sys = kokkosSystem(_kokkos_var.sys());
 
   if (!sys.isNodalDefined(node, _kokkos_var.var()))
     return;
 
-  Real local_ke = bc->computeQpJacobian(node);
+  AssemblyDatum datum(node, kokkosAssembly(), kokkosSystems(), _kokkos_var, _kokkos_var.var());
+
+  Real local_ke = bc.computeQpJacobianShim(bc, 0, datum);
 
   // This initializes the row to zero except the diagonal
   accumulateTaggedNodalMatrix(false, local_ke, node, _kokkos_var.var());
@@ -195,9 +178,8 @@ NodalBC<Derived>::operator()(JacobianLoop, const ThreadID tid) const
 
 template <typename Derived>
 KOKKOS_FUNCTION void
-NodalBC<Derived>::operator()(OffDiagJacobianLoop, const ThreadID tid) const
+NodalBC::operator()(OffDiagJacobianLoop, const ThreadID tid, const Derived & bc) const
 {
-  auto bc = static_cast<const Derived *>(this);
   auto node = kokkosBoundaryNodeID(_thread(tid, 1));
   auto & sys = kokkosSystem(_kokkos_var.sys());
   auto jvar = sys.getCoupling(_kokkos_var.var())[_thread(tid, 0)];
@@ -205,19 +187,12 @@ NodalBC<Derived>::operator()(OffDiagJacobianLoop, const ThreadID tid) const
   if (!sys.isNodalDefined(node, _kokkos_var.var()))
     return;
 
-  Real local_ke = bc->computeQpOffDiagJacobian(jvar, node);
+  AssemblyDatum datum(node, kokkosAssembly(), kokkosSystems(), _kokkos_var, jvar);
+
+  Real local_ke = bc.computeQpOffDiagJacobianShim(bc, jvar, 0, datum);
 
   accumulateTaggedNodalMatrix(true, local_ke, node, jvar);
 }
 
 } // namespace Kokkos
 } // namespace Moose
-
-#define usingKokkosNodalBCMembers(T)                                                               \
-  usingKokkosNodalBCBaseMembers;                                                                   \
-                                                                                                   \
-protected:                                                                                         \
-  using Moose::Kokkos::NodalBC<T>::_u;                                                             \
-                                                                                                   \
-public:                                                                                            \
-  using Moose::Kokkos::NodalBC<T>::operator()

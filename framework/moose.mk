@@ -163,33 +163,33 @@ endif
 # Conditional parts if the user wants to compile MOOSE with mfem
 #
 ifeq ($(ENABLE_MFEM),true)
-	MFEM_LIB := libmfem.$(lib_suffix)
-	MFEM_COMMON_LIB := libmfem-common.$(lib_suffix)
+  MFEM_LIB := libmfem-$(METHOD).$(lib_suffix)
+  MFEM_COMMON_LIB := libmfem-common-$(METHOD).$(lib_suffix)
 
   ifneq ($(and $(wildcard $(MFEM_DIR)/lib/$(MFEM_LIB)), $(wildcard $(MFEM_DIR)/lib/$(MFEM_COMMON_LIB))),)
     # Adding the include directories
-	  include $(MFEM_DIR)/share/mfem/config.mk
-	  libmesh_CPPFLAGS += $(MFEM_INCFLAGS)
+    include $(MFEM_DIR)/share/mfem/config.mk
+    libmesh_CPPFLAGS += $(MFEM_INCFLAGS) -DMFEM_CONFIG_FILE=\"_config-$(METHOD).hpp\"
 
     # Dynamically linking with the available MFEM library
-	  ifeq ($(shell uname -s),Darwin)
-	  	libmesh_LDFLAGS += -Wl,-rpath,$(MFEM_DIR)/lib
-	  else
-	    libmesh_LDFLAGS += -Wl,--copy-dt-needed-entries,-rpath,$(MFEM_DIR)/lib
-	  endif
+    ifeq ($(shell uname -s),Darwin)
+      libmesh_LDFLAGS += -Wl,-rpath,$(MFEM_DIR)/lib
+    else
+      libmesh_LDFLAGS += -Wl,--copy-dt-needed-entries,-rpath,$(MFEM_DIR)/lib
+    endif
 
-    libmesh_LDFLAGS += -L$(MFEM_DIR)/lib -lmfem -lmfem-common
+    libmesh_LDFLAGS += -L$(MFEM_DIR)/lib -lmfem-$(METHOD) -lmfem-common-$(METHOD)
 
   else
     # No mfem library found
     $(eval $(call check_library_should_error,mfem))
 
     ifeq ($(mfem_should_error),true)
-      $(error ERROR! Cannot locate libmfem and libmfem-common. Make sure to install mfem before compiling MOOSE!)
+      $(error ERROR! Cannot locate libmfem-$(METHOD) and libmfem-common-$(METHOD). Make sure to install mfem before compiling MOOSE!)
     else
       $(info Skipping libmfem error check for targets that don't involve compilation!)
     endif
-	endif
+  endif
 endif
 
 #
@@ -220,7 +220,7 @@ ifeq ($(UNAME10), MINGW64_NT)
 	PYMOD_COMPILEFLAGS := $(shell $(pyconfig) --cflags --ldflags --libs)
 else
 	PYMOD_EXTENSION    := so
-	PYMOD_COMPILEFLAGS := -L$(shell $(pyconfig) --prefix)/lib $(shell $(pyconfig) --includes)
+	PYMOD_COMPILEFLAGS := -L$(shell $(pyconfig) --prefix)/lib -Wl,-rpath,$(shell $(pyconfig) --prefix)/lib $(shell $(pyconfig) --includes)
 endif
 
 $(pyhit_srcfiles) $(hit_CLI_srcfiles): | prebuild
@@ -504,16 +504,16 @@ MOOSE_KOKKOS_SRC_FILES     := $(app_KOKKOS_UNITY_SRC_FILES)
 
 else
 
-MOOSE_KOKKOS_SRC_FILES     := $(shell find $(FRAMEWORK_DIR) -name "*.K")
+MOOSE_KOKKOS_SRC_FILES := $(shell find $(FRAMEWORK_DIR) -name "*.K")
 
 endif
 
-MOOSE_KOKKOS_OBJECTS       := $(patsubst %.K, %.$(KOKKOS_OBJ_SUFFIX), $(MOOSE_KOKKOS_SRC_FILES))
-MOOSE_KOKKOS_DEPS          := $(patsubst %.$(KOKKOS_OBJ_SUFFIX), %.$(KOKKOS_OBJ_SUFFIX).d, $(MOOSE_KOKKOS_OBJECTS))
-MOOSE_KOKKOS_LIB           := $(FRAMEWORK_DIR)/libmoose$(KOKKOS_LIB_SUFFIX)
+MOOSE_KOKKOS_OBJECTS := $(patsubst %.K, %.$(KOKKOS_OBJ_SUFFIX), $(MOOSE_KOKKOS_SRC_FILES))
+MOOSE_KOKKOS_DEPS    := $(patsubst %.$(KOKKOS_OBJ_SUFFIX), %.$(KOKKOS_OBJ_SUFFIX).d, $(MOOSE_KOKKOS_OBJECTS))
+MOOSE_KOKKOS_LIB     := $(FRAMEWORK_DIR)/libmoose$(KOKKOS_LIB_SUFFIX)
 
-KOKKOS_OBJECTS             := $(MOOSE_KOKKOS_OBJECTS)
-KOKKOS_DEPS                := $(MOOSE_KOKKOS_DEPS)
+KOKKOS_OBJECTS := $(MOOSE_KOKKOS_OBJECTS)
+KOKKOS_DEPS    := $(MOOSE_KOKKOS_DEPS)
 
 -include $(MOOSE_KOKKOS_DEPS)
 
@@ -665,7 +665,7 @@ libpath_pcre = $(MOOSE_DIR)/framework/contrib/pcre/$(libname_pcre)
 libname_hit = $(shell grep "dlname='.*'" $(MOOSE_DIR)/framework/contrib/hit/libhit-$(METHOD).la 2>/dev/null | sed -E "s/dlname='(.*)'/\1/g")
 libpath_hit = $(MOOSE_DIR)/framework/contrib/hit/$(libname_hit)
 
-install: all install_all_libs install_bin install_harness install_exodiff install_adreal_monolith install_hit install_data install_testers
+install: all install_all_libs install_bin install_harness install_exodiff install_adreal_monolith install_hit install_data install_python install_testers
 
 install_data::
 	@mkdir -p $(moose_share_dir)
@@ -683,7 +683,7 @@ install_exodiff: all
 	@mkdir -p $(bin_install_dir)
 	@cp $(MOOSE_DIR)/framework/contrib/exodiff/exodiff $(bin_install_dir)/
 
-install_python: $(pyhit_LIB) $(capabilities_LIB)
+install_python:: $(pyhit_LIB) $(capabilities_LIB)
 	@echo "Installing python utilities"
 	@rm -rf $(python_install_dir)
 	@mkdir -p $(python_install_dir)

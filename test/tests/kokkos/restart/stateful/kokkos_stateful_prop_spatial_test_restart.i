@@ -14,22 +14,22 @@
   []
 []
 
-# [AuxVariables]
-#   [prop1]
-#     order = SECOND
-#     family = MONOMIAL
-#   []
-# []
+[AuxVariables]
+  [prop1]
+    order = SECOND
+    family = MONOMIAL
+  []
+[]
 
-# [AuxKernels]
-#   [prop1_output]
-#     type = MaterialRealAux
-#     variable = prop1
-#     property = thermal_conductivity
-#   []
-# []
+[AuxKernels]
+  [prop1_output]
+    type = KokkosMaterialRealAux
+    variable = prop1
+    property = thermal_conductivity
+  []
+[]
 
-[KokkosKernels]
+[Kernels]
   [heat]
     type = KokkosMatDiffusionTest
     variable = u
@@ -41,7 +41,7 @@
   []
 []
 
-[KokkosBCs]
+[BCs]
   [left]
     type = KokkosDirichletBC
     variable = u
@@ -57,7 +57,7 @@
   []
 []
 
-[KokkosMaterials]
+[Materials]
   active = stateful
   [stateful]
     type = KokkosStatefulSpatialTest

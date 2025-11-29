@@ -23,7 +23,7 @@ class ScaleIntegrator : public mfem::BilinearFormIntegrator
 {
 private:
   mfem::BilinearFormIntegrator * _integrator{nullptr};
-  double _scale;
+  mfem::real_t _scale;
   bool _own_integrator;
 
 public:
@@ -31,11 +31,11 @@ public:
     : _integrator{integ}, _scale{1}, _own_integrator{true}
   {
   }
-  ScaleIntegrator(mfem::BilinearFormIntegrator * integ, double scale)
+  ScaleIntegrator(mfem::BilinearFormIntegrator * integ, mfem::real_t scale)
     : _integrator{integ}, _scale{scale}, _own_integrator{true}
   {
   }
-  ScaleIntegrator(mfem::BilinearFormIntegrator * integ, double scale, bool own)
+  ScaleIntegrator(mfem::BilinearFormIntegrator * integ, mfem::real_t scale, bool own)
     : _integrator{integ}, _scale{scale}, _own_integrator{own}
   {
   }
@@ -50,7 +50,7 @@ public:
     _integrator = integ;
   }
 
-  void SetScale(double scale) { _scale = scale; }
+  void SetScale(mfem::real_t scale) { _scale = scale; }
 
   void SetOwn(bool own) { _own_integrator = own; }
 
@@ -60,43 +60,47 @@ public:
       mooseError("Integrator not set");
   }
 
-  virtual void SetIntRule(const mfem::IntegrationRule * ir);
+  virtual void SetIntRule(const mfem::IntegrationRule * ir) override;
 
   virtual void AssembleElementMatrix(const mfem::FiniteElement & el,
                                      mfem::ElementTransformation & Trans,
-                                     mfem::DenseMatrix & elmat);
+                                     mfem::DenseMatrix & elmat) override;
   virtual void AssembleElementMatrix2(const mfem::FiniteElement & trial_fe,
                                       const mfem::FiniteElement & test_fe,
                                       mfem::ElementTransformation & Trans,
-                                      mfem::DenseMatrix & elmat);
+                                      mfem::DenseMatrix & elmat) override;
 
   using mfem::BilinearFormIntegrator::AssembleFaceMatrix;
   virtual void AssembleFaceMatrix(const mfem::FiniteElement & el1,
                                   const mfem::FiniteElement & el2,
                                   mfem::FaceElementTransformations & Trans,
-                                  mfem::DenseMatrix & elmat);
+                                  mfem::DenseMatrix & elmat) override;
 
   using mfem::BilinearFormIntegrator::AssemblePA;
-  virtual void AssemblePA(const mfem::FiniteElementSpace & fes);
+  virtual void AssemblePA(const mfem::FiniteElementSpace & fes) override;
 
-  virtual void AssembleDiagonalPA(mfem::Vector & diag);
+  virtual void AssembleDiagonalPA(mfem::Vector & diag) override;
 
-  virtual void AssemblePAInteriorFaces(const mfem::FiniteElementSpace & fes);
+  virtual void AssemblePAInteriorFaces(const mfem::FiniteElementSpace & fes) override;
 
-  virtual void AssemblePABoundaryFaces(const mfem::FiniteElementSpace & fes);
+  virtual void AssemblePABoundaryFaces(const mfem::FiniteElementSpace & fes) override;
 
-  virtual void AddMultTransposePA(const mfem::Vector & x, mfem::Vector & y) const;
+  virtual void AddMultTransposePA(const mfem::Vector & x, mfem::Vector & y) const override;
 
-  virtual void AddMultPA(const mfem::Vector & x, mfem::Vector & y) const;
+  virtual void AddMultPA(const mfem::Vector & x, mfem::Vector & y) const override;
 
   virtual void
-  AssembleEA(const mfem::FiniteElementSpace & fes, mfem::Vector & emat, const bool add);
+  AssembleEA(const mfem::FiniteElementSpace & fes, mfem::Vector & emat, const bool add) override;
 
-  virtual void AssembleMF(const mfem::FiniteElementSpace & fes);
+  virtual void AssembleEABoundary(const mfem::FiniteElementSpace & fes,
+                                  mfem::Vector & emat,
+                                  const bool add) override;
 
-  virtual void AddMultMF(const mfem::Vector & x, mfem::Vector & y) const;
+  virtual void AssembleMF(const mfem::FiniteElementSpace & fes) override;
 
-  virtual void AssembleDiagonalMF(mfem::Vector & diag);
+  virtual void AddMultMF(const mfem::Vector & x, mfem::Vector & y) const override;
+
+  virtual void AssembleDiagonalMF(mfem::Vector & diag) override;
 
   virtual ~ScaleIntegrator();
 };

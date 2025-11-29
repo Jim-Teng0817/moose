@@ -19,11 +19,8 @@ namespace Kokkos
 /**
  * The base class for Kokkos time-derivative kernels
  */
-template <typename Derived>
-class TimeKernel : public Kernel<Derived>
+class TimeKernel : public Kernel
 {
-  usingKokkosKernelMembers(Derived);
-
 public:
   static InputParameters validParams();
 
@@ -36,12 +33,12 @@ public:
    * Hook for additional computation for residual after the standard calls
    * @param ib The beginning element-local DOF index
    * @param ie The end element-local DOF index
-   * @param datum The ResidualDatum object of the current thread
+   * @param datum The AssemblyDatum object of the current thread
    * @param local_re The temporary storage storing the residual contribution of each DOF
    */
   KOKKOS_FUNCTION void computeResidualAdditional(const unsigned int /* ib */,
                                                  const unsigned int /* ie */,
-                                                 ResidualDatum & /* datum */,
+                                                 AssemblyDatum & /* datum */,
                                                  Real * /* local_re */) const
   {
   }
@@ -50,7 +47,8 @@ public:
    * The parallel computation body that hides the base class method to allow additional computation
    * for residual through computeResidualAdditional()
    */
-  KOKKOS_FUNCTION void computeResidualInternal(const Derived * kernel, ResidualDatum & datum) const;
+  template <typename Derived>
+  KOKKOS_FUNCTION void computeResidualInternal(const Derived & kernel, AssemblyDatum & datum) const;
 
 protected:
   /**
@@ -64,28 +62,8 @@ protected:
 };
 
 template <typename Derived>
-InputParameters
-TimeKernel<Derived>::validParams()
-{
-  InputParameters params = Kernel<Derived>::validParams();
-
-  params.set<MultiMooseEnum>("vector_tags") = "time";
-  params.set<MultiMooseEnum>("matrix_tags") = "system time";
-
-  return params;
-}
-
-template <typename Derived>
-TimeKernel<Derived>::TimeKernel(const InputParameters & parameters)
-  : Kernel<Derived>(parameters),
-    _u_dot(_var, Moose::SOLUTION_DOT_TAG),
-    _du_dot_du(_var.sys().duDotDu(_var.number()))
-{
-}
-
-template <typename Derived>
 KOKKOS_FUNCTION void
-TimeKernel<Derived>::computeResidualInternal(const Derived * kernel, ResidualDatum & datum) const
+TimeKernel::computeResidualInternal(const Derived & kernel, AssemblyDatum & datum) const
 {
   ResidualObject::computeResidualInternal(
       datum,
@@ -96,19 +74,12 @@ TimeKernel<Derived>::computeResidualInternal(const Derived * kernel, ResidualDat
           datum.reinit();
 
           for (unsigned int i = ib; i < ie; ++i)
-            local_re[i] += datum.JxW(qp) * kernel->computeQpResidual(i, qp, datum);
+            local_re[i] += datum.JxW(qp) * kernel.computeQpResidualShim(kernel, i, qp, datum);
         }
 
-        kernel->computeResidualAdditional(ib, ie, datum, local_re);
+        kernel.computeResidualAdditional(ib, ie, datum, local_re);
       });
 }
 
 } // namespace Kokkos
 } // namespace Moose
-
-#define usingKokkosTimeKernelMembers(T)                                                            \
-  usingKokkosKernelMembers(T);                                                                     \
-                                                                                                   \
-protected:                                                                                         \
-  using Moose::Kokkos::TimeKernel<T>::_u_dot;                                                      \
-  using Moose::Kokkos::TimeKernel<T>::_du_dot_du

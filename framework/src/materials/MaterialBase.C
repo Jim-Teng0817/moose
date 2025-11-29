@@ -26,6 +26,7 @@ MaterialBase::validParams()
   params += BoundaryRestrictable::validParams();
   params += TransientInterface::validParams();
   params += RandomInterface::validParams();
+  params += GeometricSearchInterface::validParams();
   params += ADFunctorInterface::validParams();
 
   params.addParam<bool>("use_displaced_mesh",
@@ -99,7 +100,6 @@ MaterialBase::MaterialBase(const InputParameters & parameters)
     ElementIDInterface(this),
     GeometricSearchInterface(this),
     ADFunctorInterface(this),
-    SolutionInvalidInterface(this),
     _subproblem(*getCheckedPointerParam<SubProblem *>("_subproblem")),
     _fe_problem(*getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")),
     _tid(parameters.get<THREAD_ID>("_tid")),
@@ -138,7 +138,6 @@ MaterialBase::MaterialBase(const MaterialBase & object, const Moose::Kokkos::Fun
     ElementIDInterface(object, key),
     GeometricSearchInterface(object, key),
     ADFunctorInterface(object, key),
-    SolutionInvalidInterface(object, key),
     _subproblem(object._subproblem),
     _fe_problem(object._fe_problem),
     _tid(object._tid),

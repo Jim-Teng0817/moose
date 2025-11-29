@@ -45,7 +45,7 @@
     required_python_packages = 'pandas matplotlib'
     # skip test if test is being run out-of-tree. Issue Ref: #25279
     installation_type = 'in_tree'
-    method = '!dbg'
+    capabilities = 'method!=dbg'
     valgrind = 'none'
   []
   [lid-mms-second]
@@ -56,7 +56,7 @@
     min_parallel = 4
     required_python_packages = 'pandas matplotlib'
     # skip test if test is being run out-of-tree. Issue Ref: #25279
-    method = '!dbg'
+    capabilities = 'method!=dbg'
     valgrind = 'none'
     installation_type = 'in_tree'
   []
@@ -73,7 +73,7 @@
       input = matrix-testing.i
       csvdiff = matrix-testing_out.csv
       max_parallel = 1 # No MatLUFactor support for mpidense
-      method = "!dbg"
+      capabilities = "method!=dbg"
       valgrind = 'none'
       detail = 'first order polynomial bases (other than zeroth order volumetric pressure), and for'
       allow_test_objects = true
@@ -84,7 +84,7 @@
       cli_args = 'Outputs/file_base=second-order-matrix-testing Variables/vel_x/order=SECOND Variables/vel_y/order=SECOND Variables/pressure/order=FIRST Variables/vel_bar_x/order=SECOND Variables/vel_bar_y/order=SECOND Variables/pressure_bar/order=SECOND'
       csvdiff = second-order-matrix-testing.csv
       max_parallel = 1 # No MatLUFactor support for mpidense
-      method = "!dbg"
+      capabilities = "method!=dbg"
       valgrind = 'none'
       detail = 'second order polynomial bases (other than first order volumetric pressure).'
       allow_test_objects = true
@@ -110,6 +110,7 @@
     absent_out = 'Linear nl0_condensed_fieldsplit_p_ solve converged due to CONVERGED_RTOL iterations [3-9]'
     cli_args = "final_re=200 starting_re=200 num_steps=1 Outputs/out/output_material_properties=false  Materials/mu/output_properties='' Outputs/out/hide='vel_average vel_mag pressure_average vel_bar_x vel_bar_y pressure_bar'"
     max_threads = 1 # static condensation doesn't currently support threading
+    capabilities = 'method!=dbg'
   []
   [block_restriction]
     requirement = 'The system shall produce equivalent output when using field split preconditoning and static condensation'
@@ -132,6 +133,8 @@
       expect_out = 'Linear nl0_condensed_fieldsplit_p_ solve converged due to CONVERGED_RTOL iterations [1-2]'
       absent_out = 'Linear nl0_condensed_fieldsplit_p_ solve converged due to CONVERGED_RTOL iterations [3-9]'
       mesh_mode = REPLICATED
+      valgrind = 'none'
+      capabilities = 'method!=dbg'
     []
   []
 []

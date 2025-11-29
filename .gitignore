@@ -83,6 +83,7 @@ temp_print_trace.*
 *.net
 .depend
 *.png
+*.avi
 *.svg
 *.gif
 *.tif
@@ -248,6 +249,9 @@ python/peacock/tests/postprocessor_tab/TestPostprocessorPluginManager_test_scrip
 !python/peacock/tests/**/input/*.*
 peacock_tmp_diff.exo
 *.e.diff
+
+# Python
+.coverage
 
 # configure
 _configs.sed

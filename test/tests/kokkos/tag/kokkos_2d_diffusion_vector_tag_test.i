@@ -28,7 +28,7 @@
   []
 []
 
-[KokkosKernels]
+[Kernels]
 
   [reaction1]
     type = KokkosReaction
@@ -55,23 +55,21 @@
 []
 
 [AuxKernels]
-
   [TagVectorAux1]
-    type = TagVectorAux
+    type = KokkosTagVectorAux
     variable = tag_variable1
     v = u
     vector_tag = vec_tag1
   []
-
   [TagVectorAux2]
-    type = TagVectorAux
+    type = KokkosTagVectorAux
     variable = tag_variable2
     v = u
     vector_tag = vec_tag2
   []
 []
 
-[KokkosBCs]
+[BCs]
   active = 'left right'
 
   [left]

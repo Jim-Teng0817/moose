@@ -10,7 +10,7 @@
   []
 []
 
-[KokkosKernels]
+[Kernels]
   [diff]
     type = KokkosDiffusion
     variable = u
@@ -38,7 +38,6 @@
     v = u
     vector_tag = vec_tag2
   []
-
   [TagVectorAux2]
     type = TagMatrixAux
     variable = tag_variable2
@@ -47,7 +46,7 @@
   []
 []
 
-[KokkosBCs]
+[BCs]
   [left]
     type = KokkosDirichletBC
     variable = u

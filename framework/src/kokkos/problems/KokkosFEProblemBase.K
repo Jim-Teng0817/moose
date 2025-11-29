@@ -8,11 +8,25 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "KokkosTypes.h"
+#include "KokkosFunction.h"
 
 #include "FEProblemBase.h"
+#include "DisplacedProblem.h"
 #include "NonlinearSystemBase.h"
 #include "AuxiliarySystem.h"
 #include "MaterialBase.h"
+
+Moose::Kokkos::System &
+FEProblemBase::getKokkosSystem(const unsigned int sys_num)
+{
+  return _kokkos_systems[sys_num];
+}
+
+const Moose::Kokkos::System &
+FEProblemBase::getKokkosSystem(const unsigned int sys_num) const
+{
+  return _kokkos_systems[sys_num];
+}
 
 void
 FEProblemBase::addKokkosKernel(const std::string & kernel_name,
@@ -32,6 +46,7 @@ FEProblemBase::addKokkosKernel(const std::string & kernel_name,
   _nl[nl_sys_num]->addKokkosKernel(kernel_name, name, parameters);
 
   _has_kokkos_objects = true;
+  _has_kokkos_residual_objects = true;
 }
 
 void
@@ -49,6 +64,7 @@ FEProblemBase::addKokkosNodalKernel(const std::string & kernel_name,
   _nl[nl_sys_num]->addKokkosNodalKernel(kernel_name, name, parameters);
 
   _has_kokkos_objects = true;
+  _has_kokkos_residual_objects = true;
 }
 
 void
@@ -70,6 +86,55 @@ FEProblemBase::addKokkosBoundaryCondition(const std::string & bc_name,
   _nl[nl_sys_num]->addKokkosBoundaryCondition(bc_name, name, parameters);
 
   _has_kokkos_objects = true;
+  _has_kokkos_residual_objects = true;
+}
+
+void
+FEProblemBase::addKokkosAuxKernel(const std::string & kernel_name,
+                                  const std::string & name,
+                                  InputParameters & parameters)
+{
+  parallel_object_only();
+
+  setAuxKernelParamsAndLog(kernel_name, name, parameters, "KokkosAuxKernel");
+
+  _aux->addKokkosKernel(kernel_name, name, parameters);
+
+  _has_kokkos_objects = true;
+}
+
+void
+FEProblemBase::addKokkosFunction(const std::string & type,
+                                 const std::string & name,
+                                 InputParameters & parameters)
+{
+  parallel_object_only();
+
+  parameters.set<SubProblem *>("_subproblem") = this;
+
+  std::shared_ptr<Moose::FunctionBase> func =
+      _factory.create<Moose::FunctionBase>(type, name, parameters);
+  logAdd("Function", name, type, parameters);
+  _kokkos_functions.addObject(func);
+
+  _has_kokkos_objects = true;
+}
+
+bool
+FEProblemBase::hasKokkosFunction(const std::string & name)
+{
+  return _kokkos_functions.hasActiveObject(name);
+}
+
+Moose::Kokkos::Function
+FEProblemBase::getKokkosFunction(const std::string & name)
+{
+  const auto & function = getKokkosFunction<Moose::FunctionBase>(name);
+
+  std::shared_ptr<Moose::Kokkos::FunctionWrapperHostBase> wrapper =
+      Moose::Kokkos::FunctorRegistry::buildFunction(&function, function.type());
+
+  return Moose::Kokkos::Function(wrapper);
 }
 
 void
@@ -78,6 +143,8 @@ FEProblemBase::addKokkosMaterial(const std::string & mat_name,
                                  InputParameters & parameters)
 {
   addMaterialHelper({&_kokkos_materials}, mat_name, name, parameters);
+
+  _has_kokkos_objects = true;
 }
 
 MaterialData &
@@ -183,12 +250,19 @@ FEProblemBase::initKokkosStatefulProps()
                                                                       needed_fe_var_vector_tags);
   }
 
+  for (auto boundary : _mesh.meshBoundaryIds())
+  {
+    _kokkos_materials.updateBoundaryVariableDependency(boundary, needed_moose_vars);
+    _kokkos_materials.updateBoundaryFEVariableCoupledVectorTagDependency(boundary,
+                                                                         needed_fe_var_vector_tags);
+  }
+
   // Copy data and preallocate quadature point solution vectors
 
   for (auto & system : _kokkos_systems)
   {
     system.setActiveVariables(needed_moose_vars);
-    system.setActiveVariableTags(needed_fe_var_vector_tags);
+    system.setActiveSolutionTags(needed_fe_var_vector_tags);
 
     system.sync(Moose::Kokkos::MemcpyKind::HOST_TO_DEVICE);
     system.reinit();
@@ -227,7 +301,7 @@ FEProblemBase::initKokkosStatefulProps()
     system.sync(Moose::Kokkos::MemcpyKind::DEVICE_TO_HOST);
 
     system.clearActiveVariables();
-    system.clearActiveVariableTags();
+    system.clearActiveSolutionTags();
   }
 }
 

@@ -79,6 +79,7 @@
 #include "UserObject.h"
 #include "OffDiagonalScalingMatrix.h"
 #include "HDGKernel.h"
+#include "AutomaticMortarGeneration.h"
 
 // libMesh
 #include "libmesh/nonlinear_solver.h"
@@ -290,13 +291,11 @@ NonlinearSystemBase::initialSetup()
     {
       // go over mortar interfaces and construct functors
       const auto & mortar_interfaces = _fe_problem.getMortarInterfaces(displaced);
-      for (const auto & mortar_interface : mortar_interfaces)
+      for (const auto & [primary_secondary_boundary_pair, mortar_generation_ptr] :
+           mortar_interfaces)
       {
-        const auto primary_secondary_boundary_pair = mortar_interface.first;
         if (!_constraints.hasActiveMortarConstraints(primary_secondary_boundary_pair, displaced))
           continue;
-
-        const auto & mortar_generation_object = mortar_interface.second;
 
         auto & mortar_constraints =
             _constraints.getActiveMortarConstraints(primary_secondary_boundary_pair, displaced);
@@ -310,7 +309,7 @@ NonlinearSystemBase::initialSetup()
 
         mortar_functors.emplace(primary_secondary_boundary_pair,
                                 ComputeMortarFunctor(mortar_constraints,
-                                                     mortar_generation_object,
+                                                     *mortar_generation_ptr,
                                                      subproblem,
                                                      _fe_problem,
                                                      displaced,
@@ -522,9 +521,11 @@ NonlinearSystemBase::addNodalKernel(const std::string & kernel_name,
     postAddResidualObject(*kernel);
   }
 
-  if (parameters.get<std::vector<AuxVariableName>>("save_in").size() > 0)
+  if (parameters.have_parameter<std::vector<AuxVariableName>>("save_in") &&
+      parameters.get<std::vector<AuxVariableName>>("save_in").size() > 0)
     _has_save_in = true;
-  if (parameters.get<std::vector<AuxVariableName>>("diag_save_in").size() > 0)
+  if (parameters.have_parameter<std::vector<AuxVariableName>>("save_in") &&
+      parameters.get<std::vector<AuxVariableName>>("diag_save_in").size() > 0)
     _has_diag_save_in = true;
 }
 
@@ -1126,13 +1127,12 @@ NonlinearSystemBase::enforceNodalConstraintsResidual(NumericVector<Number> & res
   }
 }
 
-void
-NonlinearSystemBase::enforceNodalConstraintsJacobian()
+bool
+NonlinearSystemBase::enforceNodalConstraintsJacobian(const SparseMatrix<Number> & jacobian_to_view)
 {
   if (!hasMatrix(systemMatrixTag()))
     mooseError(" A system matrix is required");
 
-  auto & jacobian = getMatrix(systemMatrixTag());
   THREAD_ID tid = 0; // constraints are going to be done single-threaded
 
   if (_constraints.hasActiveNodalConstraints())
@@ -1147,11 +1147,15 @@ NonlinearSystemBase::enforceNodalConstraintsJacobian()
       {
         _fe_problem.reinitNodes(primary_node_ids, tid);
         _fe_problem.reinitNodesNeighbor(secondary_node_ids, tid);
-        nc->computeJacobian(jacobian);
+        nc->computeJacobian(jacobian_to_view);
       }
     }
     _fe_problem.addCachedJacobian(tid);
+
+    return true;
   }
+  else
+    return false;
 }
 
 void
@@ -1772,7 +1776,7 @@ NonlinearSystemBase::computeResidualInternal(const std::set<TagID> & tags)
   residualSetup();
 
 #ifdef MOOSE_KOKKOS_ENABLED
-  if (_fe_problem.hasKokkosObjects())
+  if (_fe_problem.hasKokkosResidualObjects())
     computeKokkosResidual(tags);
 #endif
 
@@ -2877,7 +2881,7 @@ NonlinearSystemBase::computeJacobianInternal(const std::set<TagID> & tags)
   jacobianSetup();
 
 #ifdef MOOSE_KOKKOS_ENABLED
-  if (_fe_problem.hasKokkosObjects())
+  if (_fe_problem.hasKokkosResidualObjects())
     computeKokkosJacobian(tags);
 #endif
 
@@ -3052,32 +3056,39 @@ NonlinearSystemBase::computeJacobianInternal(const std::set<TagID> & tags)
       // Some constraints need to be able to read values from the Jacobian, which requires that it
       // be closed/assembled
       auto & system_matrix = getMatrix(systemMatrixTag());
-#if PETSC_RELEASE_GREATER_EQUALS(3, 23, 0)
-      SparseMatrix<Number> * view_jac_ptr;
       std::unique_ptr<SparseMatrix<Number>> hash_copy;
-      if (system_matrix.use_hash_table())
+      const SparseMatrix<Number> * view_jac_ptr;
+      auto make_readable_jacobian = [&]()
       {
-        hash_copy = libMesh::cast_ref<PetscMatrix<Number> &>(system_matrix).copy_from_hash();
-        view_jac_ptr = hash_copy.get();
-      }
-      else
-        view_jac_ptr = &system_matrix;
-      auto & jacobian_to_view = *view_jac_ptr;
+#if PETSC_RELEASE_GREATER_EQUALS(3, 23, 0)
+        if (system_matrix.use_hash_table())
+        {
+          hash_copy = libMesh::cast_ref<PetscMatrix<Number> &>(system_matrix).copy_from_hash();
+          view_jac_ptr = hash_copy.get();
+        }
+        else
+          view_jac_ptr = &system_matrix;
 #else
-      auto & jacobian_to_view = system_matrix;
+        view_jac_ptr = &system_matrix;
 #endif
-      if (&jacobian_to_view == &system_matrix)
-        system_matrix.close();
+        if (view_jac_ptr == &system_matrix)
+          system_matrix.close();
+      };
+
+      make_readable_jacobian();
 
       // Nodal Constraints
-      enforceNodalConstraintsJacobian();
+      const bool had_nodal_constraints = enforceNodalConstraintsJacobian(*view_jac_ptr);
+      if (had_nodal_constraints)
+        // We have to make a new readable Jacobian
+        make_readable_jacobian();
 
       // Undisplaced Constraints
-      constraintJacobians(jacobian_to_view, false);
+      constraintJacobians(*view_jac_ptr, false);
 
       // Displaced Constraints
       if (_fe_problem.getDisplacedProblem())
-        constraintJacobians(jacobian_to_view, true);
+        constraintJacobians(*view_jac_ptr, true);
     }
   }
   PARALLEL_CATCH;
@@ -3456,6 +3467,13 @@ NonlinearSystemBase::computeDamping(const NumericVector<Number> & solution,
     // calling stopSolve(), it is now up to PETSc to return a
     // "diverged" reason during the next solve.
   }
+  catch (std::exception & e)
+  {
+    // Allow the libmesh error/exception on negative jacobian
+    const std::string & message = e.what();
+    if (message.find("Jacobian") == std::string::npos)
+      throw;
+  }
 
   _communicator.min(damping);
 
@@ -3496,6 +3514,10 @@ NonlinearSystemBase::computeDiracContributions(const std::set<TagID> & tags, boo
     // Threads::parallel_reduce(range, cd);
 
     cd(range);
+
+    if (is_jacobian)
+      for (const auto tid : make_range(libMesh::n_threads()))
+        _fe_problem.addCachedJacobian(tid);
   }
 }
 

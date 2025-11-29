@@ -19,6 +19,18 @@ namespace Utils
 {
 
 /**
+ * Returns the sign of a value
+ * @param x The value
+ * @returns The sign of the value
+ */
+template <typename T>
+KOKKOS_INLINE_FUNCTION T
+sign(T x)
+{
+  return x >= 0.0 ? 1.0 : -1.0;
+}
+
+/**
  * Find a value in an array
  * @param target The target value to find
  * @param begin The pointer to the first element of the array
@@ -48,6 +60,54 @@ find(const T & target, const T * const begin, const T * const end)
   }
 
   return end;
+}
+
+/**
+ * Perform an in-place linear solve using Cholesky decomposition
+ * Matrix and right-hand-side vector are modified after this call
+ * @param A The row-major matrix
+ * @param x The solution vector
+ * @param b The right-hand-side vector
+ * @param n The system size
+ */
+KOKKOS_INLINE_FUNCTION void
+choleskySolve(Real * const A, Real * const x, Real * const b, const unsigned int n)
+{
+  for (unsigned int i = 0; i < n; ++i)
+  {
+    for (unsigned int j = 0; j <= i; ++j)
+    {
+      Real sum = A[j + n * i];
+
+      for (unsigned int k = 0; k < j; ++k)
+        sum -= A[k + n * i] * A[k + n * j];
+
+      if (i == j)
+        A[j + n * i] = ::Kokkos::sqrt(sum);
+      else
+        A[j + n * i] = sum / A[j + n * j];
+    }
+  }
+
+  for (unsigned int i = 0; i < n; ++i)
+  {
+    Real sum = b[i];
+
+    for (unsigned int j = 0; j < i; ++j)
+      sum -= A[j + n * i] * b[j];
+
+    b[i] = sum / A[i + n * i];
+  }
+
+  for (int i = n - 1; i >= 0; --i)
+  {
+    Real sum = b[i];
+
+    for (unsigned int j = i + 1; j < n; ++j)
+      sum -= A[i + n * j] * b[j];
+
+    x[i] = sum / A[i + n * i];
+  }
 }
 
 } // namespace Utils

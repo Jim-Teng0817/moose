@@ -278,16 +278,8 @@ public:
   void buildNodeListFromSideList();
 
   /**
-   * Calls BoundaryInfo::build_side_list().
-   * Fills in the three passed vectors with list logical (element, side, id) tuples.
-   * This function will eventually be deprecated in favor of the one below, which
-   * returns a single std::vector of (elem-id, side-id, bc-id) tuples instead.
-   */
-  void buildSideList(std::vector<dof_id_type> & el,
-                     std::vector<unsigned short int> & sl,
-                     std::vector<boundary_id_type> & il);
-  /**
-   * As above, but uses the non-deprecated std::tuple interface.
+   * Calls BoundaryInfo::build_side_list(), returns a std::vector of
+   * (elem-id, side-id, bc-id) tuples.
    */
   std::vector<std::tuple<dof_id_type, unsigned short int, boundary_id_type>> buildSideList();
 
@@ -734,7 +726,7 @@ public:
   /**
    * Get the associated BoundaryID for the boundary name.
    *
-   * @return param boundary_name The name of the boundary.
+   * @param boundary_name The name of the boundary.
    * @return the boundary id from the passed boundary name.
    */
   BoundaryID getBoundaryID(const BoundaryName & boundary_name) const;
@@ -742,7 +734,7 @@ public:
   /**
    * Get the associated BoundaryID for the boundary names that are passed in.
    *
-   * @return param boundary_name The names of the boundaries.
+   * @param boundary_name The names of the boundaries.
    * @return the boundary ids from the passed boundary names.
    */
   std::vector<BoundaryID> getBoundaryIDs(const std::vector<BoundaryName> & boundary_name,
@@ -799,7 +791,7 @@ public:
   /**
    * Return the name of the boundary given the id.
    */
-  const std::string & getBoundaryName(BoundaryID boundary_id);
+  const std::string & getBoundaryName(BoundaryID boundary_id) const;
 
   /**
    * This routine builds a multimap of boundary ids to matching boundary ids across all periodic
@@ -1431,8 +1423,12 @@ public:
    * @return The set of lower-dimensional blocks for boundary sides
    */
   const std::set<SubdomainID> & boundaryLowerDBlocks() const { return _lower_d_boundary_blocks; }
+
   /// Return construct node list from side list boolean
   bool getConstructNodeListFromSideList() { return _construct_node_list_from_side_list; }
+
+  /// Return displace node list by side list boolean
+  bool getDisplaceNodeListBySideList() { return _displace_node_list_by_side_list; }
 
 protected:
   /// Deprecated (DO NOT USE)
@@ -1851,6 +1847,10 @@ private:
 
   /// Whether or not to allow generation of nodesets from sidesets
   bool _construct_node_list_from_side_list;
+
+  /// Whether or not to displace unrelated nodesets by nodesets
+  /// constructed from sidesets
+  bool _displace_node_list_by_side_list;
 
   /// Whether we need to delete remote elements after init'ing the EquationSystems
   bool _need_delete;

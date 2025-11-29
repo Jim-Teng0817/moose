@@ -11,28 +11,29 @@
 
 #include "KokkosNodalKernel.h"
 
-class KokkosReactionNodalKernel final : public Moose::Kokkos::NodalKernel<KokkosReactionNodalKernel>
+class KokkosReactionNodalKernel : public Moose::Kokkos::NodalKernel
 {
 public:
   static InputParameters validParams();
 
   KokkosReactionNodalKernel(const InputParameters & parameters);
 
-  KOKKOS_FUNCTION Real computeQpResidual(const ContiguousNodeID node) const;
-  KOKKOS_FUNCTION Real computeQpJacobian(const ContiguousNodeID node) const;
+  KOKKOS_FUNCTION Real computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const;
+  KOKKOS_FUNCTION Real computeQpJacobian(const unsigned int qp, AssemblyDatum & datum) const;
 
 protected:
   const Real _coeff;
 };
 
 KOKKOS_FUNCTION inline Real
-KokkosReactionNodalKernel::computeQpResidual(const ContiguousNodeID node) const
+KokkosReactionNodalKernel::computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const
 {
-  return _coeff * _u(node);
+  return _coeff * _u(datum, qp);
 }
 
 KOKKOS_FUNCTION inline Real
-KokkosReactionNodalKernel::computeQpJacobian(const ContiguousNodeID /* node */) const
+KokkosReactionNodalKernel::computeQpJacobian(const unsigned int /* qp */,
+                                             AssemblyDatum & /* datum */) const
 {
   return _coeff;
 }

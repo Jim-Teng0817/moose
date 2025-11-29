@@ -68,7 +68,9 @@ pathjoin(const std::filesystem::path & p, Args... args)
 }
 
 /// Check if the input string can be parsed into a Real
-bool parsesToReal(const std::string & input);
+/// @param input input to check / parse
+/// @param parsed_real pointer to a Real that gets set to the parsed real if it does parse to Real
+bool parsesToReal(const std::string & input, Real * parsed_real = nullptr);
 
 /// Returns the location of either a local repo run_tests script - or an
 /// installed test executor script if run_tests isn't found.
@@ -1071,9 +1073,15 @@ libMesh::BoundingBox buildBoundingBox(const Point & p1, const Point & p2);
  * using the third template parameter if uninitialized storage is acceptable,
  */
 template <typename T, std::size_t N, bool value_init = true>
+#if METAPHYSICL_MAJOR_VERSION < 2
 class SemidynamicVector : public MetaPhysicL::DynamicStdArrayWrapper<T, MetaPhysicL::NWrapper<N>>
 {
   typedef MetaPhysicL::DynamicStdArrayWrapper<T, MetaPhysicL::NWrapper<N>> Parent;
+#else
+class SemidynamicVector : public MetaPhysicL::DynamicStdArrayWrapper<T, N>
+{
+  typedef MetaPhysicL::DynamicStdArrayWrapper<T, N> Parent;
+#endif
 
 public:
   SemidynamicVector(std::size_t size) : Parent()

@@ -157,6 +157,7 @@ Extensions:
             convergence: syntax/Convergence/index.md
             correctors: syntax/Correctors/index.md
             covariances: syntax/Covariance/index.md
+            csg: syntax/CSG/index.md
             dampers: syntax/Dampers/index.md
             dgkernels: syntax/DGKernels/index.md
             dirackernels: syntax/DiracKernels/index.md
@@ -191,6 +192,7 @@ Extensions:
             nodalkernels: syntax/NodalKernels/index.md
             optimizationreporters: syntax/OptimizationReporter/index.md
             outputs: syntax/Outputs/index.md
+            parallelacquisitions: syntax/ParallelAcquisition/index.md
             parser: source/parser/Parser.md
             partitioner: syntax/Mesh/Partitioner/index.md
             physics: syntax/Physics/index.md

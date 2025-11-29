@@ -11,21 +11,22 @@
 
 #include "KokkosNodalKernel.h"
 
-class KokkosConstantRate final : public Moose::Kokkos::NodalKernel<KokkosConstantRate>
+class KokkosConstantRate : public Moose::Kokkos::NodalKernel
 {
 public:
   static InputParameters validParams();
 
   KokkosConstantRate(const InputParameters & parameters);
 
-  KOKKOS_FUNCTION Real computeQpResidual(const ContiguousNodeID node) const;
+  KOKKOS_FUNCTION Real computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const;
 
 protected:
   const Moose::Kokkos::Scalar<const Real> _rate;
 };
 
 KOKKOS_FUNCTION inline Real
-KokkosConstantRate::computeQpResidual(const ContiguousNodeID /* node */) const
+KokkosConstantRate::computeQpResidual(const unsigned int /* qp */,
+                                      AssemblyDatum & /* datum */) const
 {
   return -_rate;
 }

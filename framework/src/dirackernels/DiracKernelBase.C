@@ -22,6 +22,7 @@ DiracKernelBase::validParams()
   InputParameters params = ResidualObject::validParams();
   params += MaterialPropertyInterface::validParams();
   params += BlockRestrictable::validParams();
+  params += GeometricSearchInterface::validParams();
 
   params.addParam<bool>("use_displaced_mesh",
                         false,
@@ -76,12 +77,6 @@ DiracKernelBase::DiracKernelBase(const InputParameters & parameters)
 {
   // Stateful material properties are not allowed on DiracKernels
   statefulPropertiesAllowed(false);
-}
-
-Real
-DiracKernelBase::computeQpOffDiagJacobian(unsigned int /*jvar*/)
-{
-  return 0;
 }
 
 void

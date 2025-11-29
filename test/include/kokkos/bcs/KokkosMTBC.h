@@ -11,7 +11,7 @@
 
 #include "KokkosIntegratedBC.h"
 
-class KokkosMTBC final : public Moose::Kokkos::IntegratedBC<KokkosMTBC>
+class KokkosMTBC : public Moose::Kokkos::IntegratedBC
 {
 public:
   static InputParameters validParams();
@@ -20,7 +20,7 @@ public:
 
   KOKKOS_FUNCTION Real computeQpResidual(const unsigned int i,
                                          const unsigned int qp,
-                                         ResidualDatum & datum) const;
+                                         AssemblyDatum & datum) const;
 
 private:
   /**
@@ -33,7 +33,7 @@ private:
 KOKKOS_FUNCTION inline Real
 KokkosMTBC::computeQpResidual(const unsigned int i,
                               const unsigned int qp,
-                              ResidualDatum & datum) const
+                              AssemblyDatum & datum) const
 {
   return -_test(datum, i, qp) * _value * _mat(datum, qp);
 }

@@ -23,6 +23,7 @@
     type = MFEMScalarFESpace
     fec_type = L2
     fec_order = CONSTANT
+    basis = GaussLegendre
   []
 []
 
@@ -82,7 +83,7 @@
   [essential]
     type = MFEMScalarDirichletBC
     variable = Az
-    boundary = 1
+    boundary = outer
     coefficient = 1
   []
 []

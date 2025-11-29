@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "KokkosDispatcher.h"
 #include "KokkosVariableValue.h"
 #include "KokkosMaterialPropertyValue.h"
 
@@ -84,6 +85,14 @@ protected:
    * Kokkos thread object
    */
   Thread _thread;
+  /**
+   * Kokkos functor dispatchers
+   */
+  ///@{
+  std::unique_ptr<DispatcherBase> _residual_dispatcher;
+  std::unique_ptr<DispatcherBase> _jacobian_dispatcher;
+  std::unique_ptr<DispatcherBase> _offdiag_jacobian_dispatcher;
+  ///@}
 
   /**
    * TODO: Move to TransientInterface
@@ -154,7 +163,7 @@ protected:
    * @param local_ke The local nodal Jacobian contribution
    * @param node The contiguous node ID
    * @param jvar The variable number for column
-   * @param comp The Variable component
+   * @param comp The variable component
    */
   KOKKOS_FUNCTION void accumulateTaggedNodalMatrix(const bool add,
                                                    const Real local_ke,
@@ -164,18 +173,18 @@ protected:
 
   /**
    * The common loop structure template for computing elemental residual
-   * @param datum The ResidualDatum object of the current thread
-   * @param body The quadrature-point loop body
+   * @param datum The AssemblyDatum object of the current thread
+   * @param body The quadrature point loop body
    */
   template <typename function>
-  KOKKOS_FUNCTION void computeResidualInternal(ResidualDatum & datum, function body) const;
+  KOKKOS_FUNCTION void computeResidualInternal(AssemblyDatum & datum, function body) const;
   /**
    * The common loop structure template for computing elemental Jacobian
-   * @param datum The ResidualDatum object of the current thread
-   * @param body The quadrature-point loop body
+   * @param datum The AssemblyDatum object of the current thread
+   * @param body The quadrature point loop body
    */
   template <typename function>
-  KOKKOS_FUNCTION void computeJacobianInternal(ResidualDatum & datum, function body) const;
+  KOKKOS_FUNCTION void computeJacobianInternal(AssemblyDatum & datum, function body) const;
 
 private:
   /**
@@ -203,7 +212,7 @@ ResidualObject::accumulateTaggedElementalResidual(const Real local_re,
   if (!local_re)
     return;
 
-  auto & sys = kokkosSystem(_kokkos_var.sys());
+  auto & sys = kokkosSystem(_kokkos_var.sys(comp));
   auto dof = sys.getElemLocalDofIndex(elem, i, _kokkos_var.var(comp));
 
   for (dof_id_type t = 0; t < _vector_tags.size(); ++t)
@@ -230,8 +239,8 @@ ResidualObject::accumulateTaggedNodalResidual(const bool add,
   if (!local_re)
     return;
 
-  auto & sys = kokkosSystem(_kokkos_var.sys());
-  auto dof = sys.getNodeLocalDofIndex(node, _kokkos_var.var(comp));
+  auto & sys = kokkosSystem(_kokkos_var.sys(comp));
+  auto dof = sys.getNodeLocalDofIndex(node, 0, _kokkos_var.var(comp));
 
   for (dof_id_type t = 0; t < _vector_tags.size(); ++t)
   {
@@ -258,7 +267,7 @@ ResidualObject::accumulateTaggedElementalMatrix(const Real local_ke,
   if (!local_ke)
     return;
 
-  auto & sys = kokkosSystem(_kokkos_var.sys());
+  auto & sys = kokkosSystem(_kokkos_var.sys(comp));
   auto row = sys.getElemLocalDofIndex(elem, i, _kokkos_var.var(comp));
   auto col = sys.getElemGlobalDofIndex(elem, j, jvar);
 
@@ -287,8 +296,8 @@ ResidualObject::accumulateTaggedNodalMatrix(const bool add,
   if (!local_ke)
     return;
 
-  auto & sys = kokkosSystem(_kokkos_var.sys());
-  auto row = sys.getNodeLocalDofIndex(node, _kokkos_var.var(comp));
+  auto & sys = kokkosSystem(_kokkos_var.sys(comp));
+  auto row = sys.getNodeLocalDofIndex(node, 0, _kokkos_var.var(comp));
   auto col = sys.getNodeGlobalDofIndex(node, jvar);
 
   for (dof_id_type t = 0; t < _matrix_tags.size(); ++t)
@@ -312,7 +321,7 @@ ResidualObject::accumulateTaggedNodalMatrix(const bool add,
 
 template <typename function>
 KOKKOS_FUNCTION void
-ResidualObject::computeResidualInternal(ResidualDatum & datum, function body) const
+ResidualObject::computeResidualInternal(AssemblyDatum & datum, function body) const
 {
   Real local_re[MAX_CACHED_DOF];
 
@@ -338,7 +347,7 @@ ResidualObject::computeResidualInternal(ResidualDatum & datum, function body) co
 
 template <typename function>
 KOKKOS_FUNCTION void
-ResidualObject::computeJacobianInternal(ResidualDatum & datum, function body) const
+ResidualObject::computeJacobianInternal(AssemblyDatum & datum, function body) const
 {
   Real local_ke[MAX_CACHED_DOF];
 
@@ -369,29 +378,3 @@ ResidualObject::computeJacobianInternal(ResidualDatum & datum, function body) co
 
 } // namespace Kokkos
 } // namespace Moose
-
-#define usingKokkosResidualObjectMembers                                                           \
-public:                                                                                            \
-  usingPostprocessorInterfaceMembers;                                                              \
-                                                                                                   \
-protected:                                                                                         \
-  using Moose::Kokkos::ResidualObject::kokkosAssembly;                                             \
-  using Moose::Kokkos::ResidualObject::kokkosSystems;                                              \
-  using Moose::Kokkos::ResidualObject::kokkosSystem;                                               \
-  using Moose::Kokkos::ResidualObject::accumulateTaggedElementalResidual;                          \
-  using Moose::Kokkos::ResidualObject::accumulateTaggedNodalResidual;                              \
-  using Moose::Kokkos::ResidualObject::accumulateTaggedElementalMatrix;                            \
-  using Moose::Kokkos::ResidualObject::accumulateTaggedNodalMatrix;                                \
-  using Moose::Kokkos::ResidualObject::_var;                                                       \
-  using Moose::Kokkos::ResidualObject::_kokkos_var;                                                \
-  using Moose::Kokkos::ResidualObject::_thread;                                                    \
-  using Moose::Kokkos::ResidualObject::_t;                                                         \
-  using Moose::Kokkos::ResidualObject::_t_old;                                                     \
-  using Moose::Kokkos::ResidualObject::_t_step;                                                    \
-  using Moose::Kokkos::ResidualObject::_dt;                                                        \
-  using Moose::Kokkos::ResidualObject::_dt_old;                                                    \
-                                                                                                   \
-public:                                                                                            \
-  using Moose::Kokkos::ResidualObject::ResidualLoop;                                               \
-  using Moose::Kokkos::ResidualObject::JacobianLoop;                                               \
-  using Moose::Kokkos::ResidualObject::OffDiagJacobianLoop

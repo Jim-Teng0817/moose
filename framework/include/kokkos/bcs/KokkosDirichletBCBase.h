@@ -20,10 +20,8 @@ namespace Kokkos
  * The base Kokkos boundary condition of a Dirichlet type
  */
 template <typename Derived>
-class DirichletBCBase : public NodalBC<Derived>
+class DirichletBCBase : public NodalBC
 {
-  usingKokkosNodalBCMembers(Derived);
-
 public:
   static InputParameters validParams();
 
@@ -51,10 +49,11 @@ public:
 
   /**
    * Compute residual contribution on a node
-   * @param node The contiguous node ID
+   * @param qp The dummy quadrature point index (= 0)
+   * @param datum The AssemblyDatum object of the current thread
    * @returns The residual contribution
    */
-  KOKKOS_FUNCTION Real computeQpResidual(const ContiguousNodeID node) const;
+  KOKKOS_FUNCTION Real computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const;
 
 private:
   /**
@@ -71,7 +70,7 @@ template <typename Derived>
 InputParameters
 DirichletBCBase<Derived>::validParams()
 {
-  InputParameters params = NodalBC<Derived>::validParams();
+  InputParameters params = NodalBC::validParams();
   params.addParam<bool>(
       "preset", true, "Whether or not to preset the BC (apply the value before the solve begins).");
   return params;
@@ -79,7 +78,7 @@ DirichletBCBase<Derived>::validParams()
 
 template <typename Derived>
 DirichletBCBase<Derived>::DirichletBCBase(const InputParameters & parameters)
-  : NodalBC<Derived>(parameters), _preset(this->template getParam<bool>("preset"))
+  : NodalBC(parameters), _preset(getParam<bool>("preset"))
 {
 }
 
@@ -89,9 +88,9 @@ DirichletBCBase<Derived>::presetSolution(TagID tag)
 {
   _solution_tag = tag;
 
-  ::Kokkos::parallel_for(::Kokkos::RangePolicy<ExecSpace, ::Kokkos::IndexType<ThreadID>>(
-                             0, this->numKokkosBoundaryNodes()),
-                         *static_cast<Derived *>(this));
+  ::Kokkos::parallel_for(
+      ::Kokkos::RangePolicy<ExecSpace, ::Kokkos::IndexType<ThreadID>>(0, numKokkosBoundaryNodes()),
+      *static_cast<Derived *>(this));
 }
 
 template <typename Derived>
@@ -101,28 +100,32 @@ DirichletBCBase<Derived>::operator()(const ThreadID tid) const
   auto bc = static_cast<const Derived *>(this);
   auto node = kokkosBoundaryNodeID(tid);
   auto & sys = kokkosSystem(_kokkos_var.sys());
-  auto dof = sys.getNodeLocalDofIndex(node, _kokkos_var.var());
+  auto dof = sys.getNodeLocalDofIndex(node, 0, _kokkos_var.var());
 
   if (dof == libMesh::DofObject::invalid_id)
     return;
 
-  sys.getVectorDofValue(dof, _solution_tag) = bc->computeValue(node);
+  AssemblyDatum datum(node, kokkosAssembly(), kokkosSystems(), _kokkos_var, _kokkos_var.var());
+
+  sys.getVectorDofValue(dof, _solution_tag) = bc->computeValue(0, datum);
 }
 
 template <typename Derived>
 KOKKOS_FUNCTION Real
-DirichletBCBase<Derived>::computeQpResidual(const ContiguousNodeID node) const
+DirichletBCBase<Derived>::computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const
 {
   auto bc = static_cast<const Derived *>(this);
 
-  return _u(node) - bc->computeValue(node);
+  return _u(datum, qp) - bc->computeValue(qp, datum);
 }
 
 } // namespace Kokkos
 } // namespace Moose
 
 #define usingKokkosDirichletBCBaseMembers(T)                                                       \
-  usingKokkosNodalBCMembers(T);                                                                    \
-                                                                                                   \
 public:                                                                                            \
-  using Moose::Kokkos::DirichletBCBase<T>::operator()
+  using Moose::Kokkos::DirichletBCBase<T>::operator();                                             \
+  using Moose::Kokkos::NodalBC::operator();                                                        \
+                                                                                                   \
+protected:                                                                                         \
+  using Moose::Kokkos::NodalBC::_u

@@ -304,18 +304,6 @@
     requirement = 'The system shall support storing results and data for validation cases that are combined with a standard test'
     issues = '#30517'
   []
-  [resultsreader_results]
-    type = PythonUnitTest
-    input = test_resultsreader_results.py
-    requirement = 'The system shall provide a python interface for interacting with previous test results stored in a database'
-    issues = '#30819'
-  []
-  [resultsreader_reader]
-    type = PythonUnitTest
-    input = test_resultsreader_reader.py
-    requirement = 'The system shall provide a python interface for loading previous test results from a database'
-    issues = '#30819'
-  []
   [augmented_capabilities]
     type = PythonUnitTest
     input = test_AugmentedCapabilities.py
@@ -327,5 +315,11 @@
     input = test_OnlyTestsThatRequire.py
     requirement = 'The system shall provide the ability to filter tests based on whether or not they are dependent on certain capabilities.'
     issues = '#31310'
+  []
+  [append_pythonpath]
+    type = PythonUnitTest
+    input = test_append_pythonpath.py
+    requirement = 'The system shall be able to import python utilities when running tests.'
+    issues = '#31457'
   []
 []

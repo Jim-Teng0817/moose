@@ -369,14 +369,22 @@ app_resource = $(APPLICATION_DIR)/$(APPLICATION_NAME).yaml
 
 ifeq ($(ENABLE_KOKKOS),true)
 
+app_KOKKOS_UNITY_SRC_FILES :=
+
 app_KOKKOS_SRC_FILES := $(shell find $(SRC_DIRS) -name "*.K")
 app_KOKKOS_OBJECTS   := $(patsubst %.K, %.$(KOKKOS_OBJ_SUFFIX), $(app_KOKKOS_SRC_FILES))
 app_KOKKOS_DEPS      := $(patsubst %.$(KOKKOS_OBJ_SUFFIX), %.$(KOKKOS_OBJ_SUFFIX).d, $(app_KOKKOS_OBJECTS))
 app_KOKKOS_LIB       :=
 
 ifneq ($(app_KOKKOS_OBJECTS),)
-  app_KOKKOS_LIB     := $(APPLICATION_DIR)/lib/lib$(APPLICATION_NAME)$(KOKKOS_LIB_SUFFIX)
-  app_KOKKOS_LIBS    += $(app_KOKKOS_LIB)
+  app_KOKKOS_LIB  := $(APPLICATION_DIR)/lib/lib$(APPLICATION_NAME)$(KOKKOS_LIB_SUFFIX)
+  app_KOKKOS_LIBS += $(app_KOKKOS_LIB)
+endif
+
+ifeq ($(KOKKOS_COMPILER),CPU)
+  app_KOKKOS_LIB_COMBINED := $(MOOSE_KOKKOS_LIB) $(app_KOKKOS_LIBS)
+else
+  app_KOKKOS_LIB_COMBINED := $(APPLICATION_DIR)/lib/lib$(APPLICATION_NAME)_combined$(KOKKOS_LIB_SUFFIX)
 endif
 
 KOKKOS_OBJECTS += $(app_KOKKOS_OBJECTS)
@@ -405,6 +413,7 @@ $(app_KOKKOS_LIB): $(app_KOKKOS_OBJECTS)
 else
 
 # libtool ignores nvcc and just uses mpicxx to link, so cannot be used
+
 $(app_KOKKOS_LIB): curr_dir  := $(APPLICATION_DIR)
 $(app_KOKKOS_LIB): curr_objs := $(app_KOKKOS_OBJECTS)
 $(app_KOKKOS_LIB): $(app_KOKKOS_OBJECTS)
@@ -416,12 +425,27 @@ endif
 
 endif
 
+ifeq ($(KOKKOS_COMPILER),GPU)
+
+# Making a dummy object file for triggering device link is only required for NVCC
+
+$(app_KOKKOS_LIB_COMBINED): curr_dir := $(APPLICATION_DIR)
+$(app_KOKKOS_LIB_COMBINED): $(MOOSE_KOKKOS_LIB) $(app_KOKKOS_LIBS)
+	@mkdir -p $(curr_dir)/lib
+	@echo "Device Linking Kokkos Libraries "$@"..."
+	@echo > dlink.K
+	@$(KOKKOS_CXX) $(KOKKOS_CXXFLAGS) -c dlink.K -o dlink.o
+	@$(KOKKOS_CXX) --shared -o $@ dlink.o $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(MOOSE_KOKKOS_LIB) $(app_KOKKOS_LIBS)
+	@rm dlink.K dlink.o
+
+endif
+
 endif
 
 # Target-specific Variable Values (See GNU-make manual)
 $(app_LIB): curr_objs := $(app_objects)
 $(app_LIB): curr_dir  := $(APPLICATION_DIR)
-$(app_LIB): curr_deps := $(depend_libs) $(app_KOKKOS_LIB)
+$(app_LIB): curr_deps := $(depend_libs)
 $(app_LIB): curr_libs := $(depend_libs_flags)
 $(app_LIB): curr_additional_depend_libs := $(ADDITIONAL_DEPEND_LIBS)
 $(app_LIB): curr_additional_libs := $(ADDITIONAL_LIBS)
@@ -440,11 +464,11 @@ else
 # Target-specific Variable Values (See GNU-make manual)
 $(app_test_LIB): curr_objs := $(app_test_objects)
 $(app_test_LIB): curr_dir  := $(APPLICATION_DIR)/test
-$(app_test_LIB): curr_deps := $(depend_libs) $(app_KOKKOS_LIB)
+$(app_test_LIB): curr_deps := $(depend_libs)
 $(app_test_LIB): curr_libs := $(depend_libs_flags)
 $(app_test_LIB): curr_additional_depend_libs := $(ADDITIONAL_DEPEND_LIBS)
 $(app_test_LIB): curr_additional_libs := $(ADDITIONAL_LIBS)
-$(app_test_LIB): $(app_HEADER) $(app_plugin_deps) $(depend_libs) $(app_test_objects) $(ADDITIONAL_DEPEND_LIBS)
+$(app_test_LIB): $(app_HEADER) $(app_plugin_deps) $(depend_libs) $(gtest_LIB) $(app_test_objects) $(ADDITIONAL_DEPEND_LIBS)
 	@echo "Linking Test Library "$@"..."
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
 	  $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(curr_objs) $(LDFLAGS) $(libmesh_LDFLAGS) $(EXTERNAL_FLAGS) $(curr_additional_libs) -rpath $(curr_dir)/lib $(curr_libs)
@@ -514,10 +538,10 @@ ifneq (,$(findstring darwin,$(libmesh_HOST)))
   endif
 endif
 
-$(app_EXEC): $(app_LIBS) $(mesh_library) $(main_object) $(app_test_LIB) $(depend_test_libs) $(app_resource) $(MOOSE_KOKKOS_LIB) $(app_KOKKOS_LIBS)
+$(app_EXEC): $(app_LIBS) $(mesh_library) $(main_object) $(app_test_LIB) $(depend_test_libs) $(app_resource) $(app_KOKKOS_LIB_COMBINED) $(ADDITIONAL_EXEC_OBJECTS)
 	@echo "Linking Executable "$@"..."
 	@bash -c '$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
-	  $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(main_object) $(depend_test_libs_flags) $(applibs) $(ADDITIONAL_LIBS) $(LDFLAGS) $(libmesh_LDFLAGS) $(libmesh_LIBS) $(EXTERNAL_FLAGS) $(MOOSE_KOKKOS_LIB) $(app_KOKKOS_LIBS) ${SILENCE_SOME_WARNINGS}'
+	  $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(main_object) $(depend_test_libs_flags) $(applibs) $(ADDITIONAL_LIBS) $(ADDITIONAL_EXEC_OBJECTS) $(LDFLAGS) $(libmesh_LDFLAGS) $(libmesh_LIBS) $(EXTERNAL_FLAGS) $(app_KOKKOS_LIB_COMBINED) ${SILENCE_SOME_WARNINGS}'
 	@$(codesign)
 
 ###### install stuff #############
@@ -540,14 +564,25 @@ endif
 # Top level install target for all libraries (.so/.dylib, .la)
 install_all_libs: $(lib_archive_install_targets) $(lib_install_targets)
 
+# Install application data directory if it exists
 ifneq ($(wildcard $(APPLICATION_DIR)/data/.),)
 install_data_$(APPLICATION_NAME)_src := $(APPLICATION_DIR)/data
 install_data_$(APPLICATION_NAME)_dst := $(share_install_dir)
 install_data:: install_data_$(APPLICATION_NAME)
 endif
-
 install_data_%:
 	@echo "Installing data "$($@_dst)"..."
+	@mkdir -p $($@_dst)
+	@cp -r $($@_src) $($@_dst)
+
+# Install application python directory if it exists
+ifneq ($(wildcard $(APPLICATION_DIR)/python/.),)
+install_python_$(APPLICATION_NAME)_src := $(APPLICATION_DIR)/python
+install_python_$(APPLICATION_NAME)_dst := $(share_install_dir)
+install_python:: install_python_$(APPLICATION_NAME)
+endif
+install_python_%:
+	@echo "Installing python "$($@_dst)"..."
 	@mkdir -p $($@_dst)
 	@cp -r $($@_src) $($@_dst)
 

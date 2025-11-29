@@ -20,21 +20,20 @@
  */
 class KokkosCoupledDirichletBC final : public KokkosDirichletBC<KokkosCoupledDirichletBC>
 {
-  usingKokkosDirichletBCMembers(KokkosCoupledDirichletBC);
-
 public:
   static InputParameters validParams();
 
   KokkosCoupledDirichletBC(const InputParameters & parameters);
 
-  KOKKOS_FUNCTION Real computeQpResidual(const ContiguousNodeID node) const;
-  KOKKOS_FUNCTION Real computeQpJacobian(const ContiguousNodeID node) const;
+  KOKKOS_FUNCTION Real computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const;
+  KOKKOS_FUNCTION Real computeQpJacobian(const unsigned int qp, AssemblyDatum & datum) const;
   KOKKOS_FUNCTION Real computeQpOffDiagJacobian(const unsigned int jvar,
-                                                const ContiguousNodeID node) const;
+                                                const unsigned int qp,
+                                                AssemblyDatum & datum) const;
 
 protected:
   // The coupled variable
-  const Moose::Kokkos::VariableNodalValue _v;
+  const Moose::Kokkos::VariableValue _v;
 
   /// The id of the coupled variable
   const unsigned int _v_num;
@@ -44,23 +43,25 @@ protected:
 };
 
 KOKKOS_FUNCTION inline Real
-KokkosCoupledDirichletBC::computeQpResidual(const ContiguousNodeID node) const
+KokkosCoupledDirichletBC::computeQpResidual(const unsigned int qp, AssemblyDatum & datum) const
 {
-  return _c * _u(node) + _u(node) * _u(node) + _v(node) * _v(node) - _value;
+  return _c * _u(datum, qp) + _u(datum, qp) * _u(datum, qp) + _v(datum, qp) * _v(datum, qp) -
+         _value;
 }
 
 KOKKOS_FUNCTION inline Real
-KokkosCoupledDirichletBC::computeQpJacobian(const ContiguousNodeID node) const
+KokkosCoupledDirichletBC::computeQpJacobian(const unsigned int qp, AssemblyDatum & datum) const
 {
-  return _c + 2 * _u(node);
+  return _c + 2 * _u(datum, qp);
 }
 
 KOKKOS_FUNCTION inline Real
 KokkosCoupledDirichletBC::computeQpOffDiagJacobian(const unsigned int jvar,
-                                                   const ContiguousNodeID node) const
+                                                   const unsigned int qp,
+                                                   AssemblyDatum & datum) const
 {
   if (jvar == _v_num)
-    return 2 * _v(node);
+    return 2 * _v(datum, qp);
   else
     return 0;
 }

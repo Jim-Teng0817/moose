@@ -77,10 +77,20 @@ public:
   void init(const std::vector<Real> & values, CoupleableKey);
 
   /**
+   * Get whether the variable is initialized
+   * @returns Whether the variable is initialized
+   */
+  KOKKOS_FUNCTION bool initialized() const { return _initialized; }
+  /**
    * Get whether the variable is coupled
    * @returns Whether the variable is coupled
    */
   KOKKOS_FUNCTION bool coupled() const { return _coupled; }
+  /**
+   * Get whether the variable is nodal
+   * @returns Whether the variable is nodal
+   */
+  KOKKOS_FUNCTION bool nodal() const { return _nodal; }
   /**
    * Get the number of components
    * @returns The number of components
@@ -117,9 +127,17 @@ public:
 
 private:
   /**
+   * Whether the variable is initialized
+   */
+  bool _initialized = false;
+  /**
    * Whether the variable is coupled
    */
   bool _coupled = false;
+  /**
+   * Whether the variable is nodal
+   */
+  bool _nodal = false;
   /**
    * Number of components
    */
