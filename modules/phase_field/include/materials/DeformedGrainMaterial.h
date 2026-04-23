@@ -45,6 +45,18 @@ protected:
   /// the average dislocation density
   const Real _Disloc_Den;
 
+  /// whether an optional per-element dislocation density field is coupled
+  const bool _has_rho_var;
+
+  /// optional per-element dislocation density field (1/m^2); zero-valued reference when not coupled
+  const VariableValue * const _rho_var;
+
+  /// optional per-grain dislocation density vector, indexed by grain_id (1/m^2)
+  const std::vector<Real> _rho_per_grain;
+
+  /// whether the per-grain dislocation density vector is non-empty
+  const bool _has_rho_per_grain;
+
   /// the elastic modulus
   const Real _Elas_Mod;
 

@@ -27,6 +27,15 @@ DeformedGrainMaterial::validParams()
   params.addParam<Real>("GBMobility", 2.0e-13, "GB mobility input in m^4/(J*s)");
   params.addParam<Real>("GBE", 1.0, "Grain boundary energy in J/m^2");
   params.addParam<Real>("Disloc_Den", 9.0e15, "Dislocation Density in m^-2");
+  params.addCoupledVar("rho_var",
+                       9.0e15,
+                       "Optional per-element dislocation density field (1/m^2). If supplied, "
+                       "takes precedence over Disloc_Den_per_grain and Disloc_Den.");
+  params.addParam<std::vector<Real>>(
+      "Disloc_Den_per_grain",
+      std::vector<Real>(),
+      "Optional per-grain dislocation density vector indexed by grain_id (1/m^2). Used when "
+      "rho_var is not coupled. Falls back to Disloc_Den for out-of-range grain_ids.");
   params.addParam<Real>("Elas_Mod", 2.50e10, "Elastic Modulus in J/m^3");
   params.addParam<Real>("Burg_vec", 3.0e-10, "Length of Burger Vector in m");
   params.addRequiredParam<UserObjectName>("grain_tracker",
@@ -44,6 +53,10 @@ DeformedGrainMaterial::DeformedGrainMaterial(const InputParameters & parameters)
     _GBMobility(getParam<Real>("GBMobility")),
     _GBE(getParam<Real>("GBE")),
     _Disloc_Den(getParam<Real>("Disloc_Den")),
+    _has_rho_var(isCoupled("rho_var")),
+    _rho_var(_has_rho_var ? &coupledValue("rho_var") : NULL),
+    _rho_per_grain(getParam<std::vector<Real>>("Disloc_Den_per_grain")),
+    _has_rho_per_grain(!_rho_per_grain.empty()),
     _Elas_Mod(getParam<Real>("Elas_Mod")),
     _Burg_vec(getParam<Real>("Burg_vec")),
     _kappa(declareProperty<Real>("kappa_op")),
@@ -61,22 +74,51 @@ DeformedGrainMaterial::DeformedGrainMaterial(const InputParameters & parameters)
 {
   if (_op_num == 0)
     paramError("op_num", "Model requires op_num > 0");
+
+  if (_has_rho_per_grain && _rho_per_grain.size() < _deformed_grain_num)
+    mooseWarning("Disloc_Den_per_grain has size ",
+                 _rho_per_grain.size(),
+                 " but deformed_grain_num is ",
+                 _deformed_grain_num,
+                 "; entries past size will fall back to Disloc_Den.");
 }
 
 void
 DeformedGrainMaterial::computeQpProperties()
 {
-  _Disloc_Den_i[_qp] = _Disloc_Den * (_length_scale * _length_scale);
+  // calculate effective dislocation density and assign zero dislocation densities to undeformed
+  // grains
+  const auto & op_to_grains = _grain_tracker.getVarToFeatureVector(_current_elem->id());
+
+  // Pick per-QP rho using priority: rho_var > Disloc_Den_per_grain[grain_id] > Disloc_Den.
+  Real rho = _Disloc_Den;
+  if (_has_rho_var)
+    rho = (*_rho_var)[_qp];
+  else if (_has_rho_per_grain)
+  {
+    // grain_id lookup matches the existing loop below - reuse the same op_to_grains query.
+    // Pick the first active OP at this element and index into the vector. If grain_id is
+    // out of range for the vector, rho stays at _Disloc_Den (the default above).
+    for (MooseIndex(op_to_grains) op_index = 0; op_index < op_to_grains.size(); ++op_index)
+    {
+      auto grain_id = op_to_grains[op_index];
+      if (grain_id == FeatureFloodCount::invalid_id)
+        continue;
+      if (grain_id < _rho_per_grain.size())
+      {
+        rho = _rho_per_grain[grain_id];
+        break;
+      }
+      // grain_id >= vector size -> fall back to _Disloc_Den (already initialised above).
+    }
+  }
+  _Disloc_Den_i[_qp] = rho * (_length_scale * _length_scale);
 
   Real rho_i;
   Real rho0 = 0.0;
   Real SumEtai2 = 0.0;
   for (unsigned int i = 0; i < _op_num; ++i)
     SumEtai2 += (*_vals[i])[_qp] * (*_vals[i])[_qp];
-
-  // calculate effective dislocation density and assign zero dislocation densities to undeformed
-  // grains
-  const auto & op_to_grains = _grain_tracker.getVarToFeatureVector(_current_elem->id());
 
   // loop over active OPs
   bool one_active = false;
