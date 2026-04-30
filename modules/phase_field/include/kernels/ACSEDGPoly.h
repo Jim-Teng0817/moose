@@ -46,7 +46,10 @@ protected:
   const MaterialProperty<Real> & _rho_eff;
 
   /// dislocation density in grain i
-  const MaterialProperty<Real> & _Disloc_Den_i;
+  const MaterialProperty<Real> & _disloc_den_i;
+
+  /// per-grain dislocation density vector indexed by grain ID
+  const MaterialProperty<std::vector<Real>> & _grain_disloc_data;
 
   /// number of deformed grains
   unsigned int _deformed_grain_num;

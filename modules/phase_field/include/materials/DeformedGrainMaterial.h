@@ -9,21 +9,22 @@
 
 #pragma once
 
-#include "Material.h"
+#include "GBEvolution.h"
 
 // Forward Declarations
-class GrainTrackerInterface;
+class GrainTrackerDislocations;
 
 /**
  * Calculates The Deformation Energy associated with a specific dislocation density.
  * The rest of parameters are the same as in the grain growth model
  */
-class DeformedGrainMaterial : public Material
+template <bool is_ad>
+class DeformedGrainMaterialTempl : public GBEvolutionTempl<is_ad>
 {
 public:
   static InputParameters validParams();
 
-  DeformedGrainMaterial(const InputParameters & parameters);
+  DeformedGrainMaterialTempl(const InputParameters & parameters);
 
 protected:
   virtual void computeQpProperties();
@@ -32,24 +33,16 @@ protected:
   const unsigned int _op_num;
 
   /// order parameter values
-  const std::vector<const VariableValue *> _vals;
-
-  const Real _length_scale;
-  const Real _int_width;
-  const Real _time_scale;
-  const Real _GBMobility;
-
-  /// the GB Energy
-  const Real _GBE;
+  const std::vector<const GenericVariableValue<is_ad> *> _vals;
 
   /// the average dislocation density
-  const Real _Disloc_Den;
+  const Real _dislocation_density_constant;
 
   /// whether an optional per-element dislocation density field is coupled
   const bool _has_rho_var;
 
   /// optional per-element dislocation density field (1/m^2); zero-valued reference when not coupled
-  const VariableValue * const _rho_var;
+  const GenericVariableValue<is_ad> * const _rho_var;
 
   /// optional per-grain dislocation density vector, indexed by grain_id (1/m^2)
   const std::vector<Real> _rho_per_grain;
@@ -58,28 +51,22 @@ protected:
   const bool _has_rho_per_grain;
 
   /// the elastic modulus
-  const Real _Elas_Mod;
+  const Real _shear_modulus;
 
   /// the Length of Burger's Vector
-  const Real _Burg_vec;
-
-  /// the same parameters that appear in the original grain growth model
-  MaterialProperty<Real> & _kappa;
-  MaterialProperty<Real> & _gamma;
-  MaterialProperty<Real> & _L;
-  MaterialProperty<Real> & _mu;
+  const Real _burgers_vector;
 
   /// the prefactor needed to calculate the deformation energy from dislocation density
-  MaterialProperty<Real> & _beta;
+  GenericMaterialProperty<Real, is_ad> & _beta;
 
   /// dislocation density in grain i
-  MaterialProperty<Real> & _Disloc_Den_i;
+  GenericMaterialProperty<Real, is_ad> & _disloc_den_i;
 
   /// the average/effective dislocation density
-  MaterialProperty<Real> & _rho_eff;
+  GenericMaterialProperty<Real, is_ad> & _rho_eff;
 
   /// the deformation energy
-  MaterialProperty<Real> & _Def_Eng;
+  GenericMaterialProperty<Real, is_ad> & _deformation_energy;
 
   // Constants
 
@@ -87,7 +74,17 @@ protected:
   const unsigned int _deformed_grain_num;
 
   /// Grain tracker object
-  const GrainTrackerInterface & _grain_tracker;
-  const Real _kb;
-  const Real _JtoeV;
+  const GrainTrackerDislocations & _grain_tracker;
+
+  /// carries the information about dislocation density in each grain
+  MaterialProperty<std::vector<Real>> & _grain_disloc_data;
+
+  /// number of grains that are currently extant in the simulation
+  unsigned int _num_active_grains;
+
+  /// total number of grains that have existed/do exist in the simulation
+  unsigned int _num_total_grains;
 };
+
+typedef DeformedGrainMaterialTempl<false> DeformedGrainMaterial;
+typedef DeformedGrainMaterialTempl<true> ADDeformedGrainMaterial;

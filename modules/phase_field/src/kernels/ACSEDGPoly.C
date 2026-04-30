@@ -10,6 +10,7 @@
 #include "ACSEDGPoly.h"
 #include "Material.h"
 #include "GrainTrackerInterface.h"
+#include "FeatureFloodCount.h"
 
 registerMooseObject("PhaseFieldApp", ACSEDGPoly);
 
@@ -34,7 +35,8 @@ ACSEDGPoly::ACSEDGPoly(const InputParameters & parameters)
     _vals_var(coupledIndices("v")),
     _beta(getMaterialProperty<Real>("beta")),
     _rho_eff(getMaterialProperty<Real>("rho_eff")),
-    _Disloc_Den_i(getMaterialProperty<Real>("Disloc_Den_i")),
+    _disloc_den_i(getMaterialProperty<Real>("disloc_den_i")),
+    _grain_disloc_data(getMaterialProperty<std::vector<Real>>("grain_disloc_data")),
     _deformed_grain_num(getParam<unsigned int>("deformed_grain_num")),
     _grain_tracker(getUserObject<GrainTrackerInterface>("grain_tracker")),
     _op_index(getParam<unsigned int>("op_index"))
@@ -50,13 +52,13 @@ ACSEDGPoly::computeDFDOP(PFFunctionType type)
 
   // Add the current OP to the sum
   Real SumEtai2 = SumEtaj + _u[_qp] * _u[_qp];
-  // Dislocation density in deformed grains
-  Real rho_i = _Disloc_Den_i[_qp];
-  // undeformed grains are dislocation-free
+  // Look up per-grain dislocation density; falls back to 0 for invalid or out-of-range grain IDs
   const auto & op_to_grain = _grain_tracker.getVarToFeatureVector(_current_elem->id());
   const auto grn_index = op_to_grain[_op_index];
-  if (grn_index >= _deformed_grain_num)
-    rho_i = 0.0;
+  Real rho_i = (grn_index != FeatureFloodCount::invalid_id &&
+                grn_index < _grain_disloc_data[_qp].size())
+                   ? _grain_disloc_data[_qp][grn_index]
+                   : 0.0;
 
   // Calculate the contributions of the deformation energy to the residual and Jacobian
   Real drho_eff_detai = 2.0 * _u[_qp] * (rho_i - _rho_eff[_qp]) / SumEtai2;

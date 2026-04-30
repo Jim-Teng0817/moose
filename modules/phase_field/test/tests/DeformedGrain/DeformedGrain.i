@@ -84,7 +84,7 @@
 [Materials]
   [./deformed]
     type = DeformedGrainMaterial
-    int_width = 4.0
+    wGB = 4.0
     outputs = exodus
   [../]
 []
