@@ -12,10 +12,10 @@
 []
 
 [GlobalParams]
-  op_num = 8
-  deformed_grain_num = 16
+  op_num = 4
+  deformed_grain_num = 4
   var_name_base = gr
-  grain_num = 18
+  grain_num = 4
   grain_tracker = grain_tracker
   time_scale = 1e-2
   length_scale = 1e-8
@@ -39,14 +39,24 @@
     rand_seed = 81
     coloring_algorithm = bt
   [../]
+  [./dislocation_density_file]
+    type = DislocationDensityFileReader
+    file_name = test.txt
+    lines_to_skip = 0
+  [../]
   [./grain_tracker]
-    type = GrainTracker
+    # GrainTrackerDislocations is required by DeformedGrainMaterial to supply
+    # per-grain dislocation data via getData().
+    type = GrainTrackerDislocations
     threshold = 0.2
     connecting_threshold = 0.08
     compute_var_to_feature_map = true
     flood_entity_type = elemental
-    execute_on = ' initial timestep_begin'
+    execute_on = 'initial timestep_begin'
     outputs = none
+    dislocation_density_reader = dislocation_density_file
+    polycrystal_ic_uo = voronoi
+    tolerate_failure = true
   [../]
 []
 
@@ -85,6 +95,10 @@
   [./deformed]
     type = DeformedGrainMaterial
     wGB = 4.0
+    GBenergy = 0.708
+    GBMobility = 2.5e-14
+    T = 300
+    output_properties = 'beta disloc_den_i rho_eff deformation_energy'
     outputs = exodus
   [../]
 []
