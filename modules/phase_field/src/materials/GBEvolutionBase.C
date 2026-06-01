@@ -69,7 +69,8 @@ template <bool is_ad>
 void
 GBEvolutionBaseTempl<is_ad>::computeQpProperties()
 {
-  const Real length_scale4 = _length_scale * _length_scale * _length_scale * _length_scale;
+  const Real length_scale4 = _length_scale * _length_scale * _length_scale * _length_scale; // Removed for literature mobility (Jim 20250606)
+  // const Real length_scale3 = _length_scale * _length_scale * _length_scale; // Added for literature mobility (Jim 20250606)
 
   // GB mobility Derivative
   Real dM_GBdT;
@@ -77,7 +78,8 @@ GBEvolutionBaseTempl<is_ad>::computeQpProperties()
   if (_GBMobility < 0)
   {
     // Convert to lengthscale^4/(eV*timescale);
-    const Real M0 = _GBmob0 * _time_scale / (_JtoeV * length_scale4);
+    const Real M0 = _GBmob0 * _time_scale / (_JtoeV * length_scale4); // Removed for literature mobility (Jim 20250606)
+    // const Real M0 = _GBmob0 * _time_scale / (_JtoeV * length_scale3);   // Added for literature mobility (Jim 20250606)
 
     _M_GB[_qp] = M0 * std::exp(-_Q / (_kb * _T[_qp]));
     dM_GBdT = MetaPhysicL::raw_value(_M_GB[_qp] * _Q / (_kb * _T[_qp] * _T[_qp]));
@@ -85,16 +87,21 @@ GBEvolutionBaseTempl<is_ad>::computeQpProperties()
   else
   {
     // Convert to lengthscale^4/(eV*timescale)
-    _M_GB[_qp] = _GBMobility * _time_scale / (_JtoeV * length_scale4);
+    _M_GB[_qp] = _GBMobility * _time_scale / (_JtoeV * length_scale4); // Removed for literature mobility (Jim 20250606)
+    // Convert to lengthscale^3/(eV*timescale) due to "L" directly (not M)
+    // _M_GB[_qp] = _GBMobility * _time_scale / (_JtoeV * length_scale3); // Added for literature mobility (Jim 20250606)
+
     dM_GBdT = 0.0;
   }
 
   // in the length scale of the system
   _l_GB[_qp] = _wGB;
 
-  _L[_qp] = 4.0 / 3.0 * _M_GB[_qp] / _l_GB[_qp];
+  _L[_qp] = 4.0 / 3.0 * _M_GB[_qp] / _l_GB[_qp]; // Removed for literature mobility (Jim 20250606)
+  // _L[_qp] = _M_GB[_qp]; // Added for literature mobility (Jim 20250606)
   if (_dLdT)
-    (*_dLdT)[_qp] = MetaPhysicL::raw_value(4.0 / 3.0 * dM_GBdT / _l_GB[_qp]);
+    (*_dLdT)[_qp] = MetaPhysicL::raw_value(4.0 / 3.0 * dM_GBdT / _l_GB[_qp]); // Removed for literature mobility (Jim 20250606)
+    // (*_dLdT)[_qp] = MetaPhysicL::raw_value(dM_GBdT); // Added for literature mobility (Jim 20250606)
   _kappa[_qp] = 3.0 / 4.0 * _sigma[_qp] * _l_GB[_qp];
   _gamma[_qp] = 1.5;
   _mu[_qp] = 3.0 / 4.0 * 1.0 / _f0s * _sigma[_qp] / _l_GB[_qp];
