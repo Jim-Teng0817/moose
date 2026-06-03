@@ -195,7 +195,7 @@ KocksMeckingDislocationTempl<is_ad>::initQpStatefulProperties()
       break;
   }
   _rho[_qp] = std::max(rho0, _rho_min);
-  _tau_flow[_qp] = _tau0 + _M_taylor * _alpha * _mu * _b * std::sqrt(_rho[_qp]);
+  _tau_flow[_qp] = _tau0 + _M_taylor * _alpha * _mu * _b * sqrt(_rho[_qp]);
 }
 
 template <bool is_ad>

@@ -95,7 +95,7 @@ The test input below uses `type = GrainTracker` in the `[UserObjects]` block. In
 this must be replaced with `type = GrainTrackerDislocations` so that the per-grain
 dislocation data interface is available to `DeformedGrainMaterial`.
 
-!listing modules/phase_field/test/tests/DeformedGrain/DeformedGrain.i block=Materials
+!listing modules/phase_field/test/tests//.i block=Materials
 
 !syntax parameters /Materials/DeformedGrainMaterial
 

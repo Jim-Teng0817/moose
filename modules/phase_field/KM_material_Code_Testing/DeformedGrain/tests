@@ -1,0 +1,75 @@
+[Tests]
+ [GTDislocations]
+    type = 'Exodiff'
+    input = 'grain_tracker_dislocations.i'
+    exodiff = 'grain_tracker_dislocations_out.e'
+    issues = '#32766'
+    design = 'GrainTrackerDislocations.md'
+    requirement = 'MOOSE shall supply grain-based dislocation density values'
+  []
+
+  [GTDislocations_error]
+    type = 'RunException'
+    input = 'grain_tracker_dislocations.i'
+    cli_args = 'UserObjects/dislocation_density_file/lines_to_skip=2'
+    expect_err = 'GrainTrackerDislocations has run out of dislocation densities for grains'
+    issues = '#32766'
+    design = 'GrainTrackerDislocations.md'
+    requirement = 'MOOSE shall check for error while supplying grain-based dislocation density values'
+  []
+
+  [DeformedGrain]
+    capabilities = 'method!=dbg'
+    type = 'Exodiff'
+    input = 'DeformedGrain.i'
+    exodiff = 'DeformedGrain_out.e'
+    issues = '#7499'
+    design = 'DeformedGrainMaterial.md '
+    requirement = 'MOOSE shall provide kernels and materials for deformed grain evolution'
+  []
+
+  [DeformedGrain_per_grain]
+    capabilities = 'method!=dbg'
+    type = 'Exodiff'
+    input = 'DeformedGrain.i'
+    exodiff = 'DeformedGrain_per_grain_out.e'
+    cli_args = "Materials/deformed/dislocation_density_per_grain='1.0e14 1.0e16 1.0e15 1.0e17' "
+               "Outputs/file_base=DeformedGrain_per_grain_out"
+    issues = '#32766'
+    design = 'DeformedGrainMaterial.md'
+    requirement = 'The system shall accept a per-grain dislocation density vector '
+                  'via the dislocation_density_per_grain parameter and assign '
+                  'distinct deformation energies to grains with different densities.'
+  []
+
+  [DeformedGrain_rho_var]
+    capabilities = 'method!=dbg'
+    type = 'Exodiff'
+    input = 'DeformedGrain.i'
+    exodiff = 'DeformedGrain_rho_var_out.e'
+    cli_args = "AuxVariables/rho_field/order=FIRST "
+               "AuxVariables/rho_field/family=LAGRANGE "
+               "AuxVariables/rho_field/initial_condition=9.0e13 "
+               "Materials/deformed/rho_var=rho_field "
+               "Outputs/file_base=DeformedGrain_rho_var_out"
+    issues = '#32766'
+    design = 'DeformedGrainMaterial.md'
+    requirement = 'The system shall accept a coupled AuxVariable as the '
+                  'per-element dislocation density field (rho_var) and use it '
+                  'with higher priority than the constant dislocation_density_constant '
+                  'when computing the deformation energy.'
+  []
+
+  [ADDeformedGrainMaterial_test]
+    capabilities = 'method!=dbg'
+    type = 'Exodiff'
+    input = 'ADDeformedGrainMaterial_test.i'
+    exodiff = 'ADDeformedGrainMaterial_test_out.e'
+    issues = '#32766'
+    design = 'DeformedGrainMaterial.md'
+    requirement = 'The system shall provide an automatic-differentiation variant '
+                  '(ADDeformedGrainMaterial) that computes deformation energy '
+                  'material properties without error under polycrystal grain-growth '
+                  'conditions.'
+  []
+[]
