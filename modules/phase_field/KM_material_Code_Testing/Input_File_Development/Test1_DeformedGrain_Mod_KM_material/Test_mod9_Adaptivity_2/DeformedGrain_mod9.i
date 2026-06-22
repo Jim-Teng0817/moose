@@ -1,7 +1,7 @@
 # This example tests the implementation of PolycrstalStoredEnergy kernels that assigns excess stored energy to grains with dislocation density
 
 # adaptivity
-mesh_adaptivity_level = 2 # 2 3
+mesh_adaptivity_level = 3 # 2 3
 coarsen_i = 0.06
 refine_i = 0.20
 
@@ -10,7 +10,7 @@ refine_i = 0.20
 # time_scale_i = '${units 1 s}'
 time_scale_i = 1e-2         # 1e-6
 dt_i = 2e-1                
-end_time_i = '${fparse 1 * (1/time_scale_i)}'    
+end_time_i = '${fparse 10 * (1/time_scale_i)}'    
 # sync_times_i = '${fparse 1800 * (1/time_scale_i)}'   # represent the 1800 s = 30 min
 
 # length
@@ -19,8 +19,8 @@ length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 32
-  ny = 32
+  nx = 16
+  ny = 16
   nz = 0
   xmin = 0
   xmax = 64
@@ -122,7 +122,7 @@ length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
     GBenergy = 0.708
     GBMobility = 2.5e-14
     T = 300
-    # output_properties = 'beta disloc_den_i rho_eff deformation_energy'
+    output_properties = 'beta disloc_den_i rho_eff deformation_energy'
     outputs = exodus
   [../]
 []
@@ -209,7 +209,7 @@ length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
 [Outputs]
   exodus = true
   time_step_interval = 1
-  show = bnds
+  # show = bnds
   perf_graph = true
   execute_on = 'timestep_end'                 # To output the material properties (Jim June 3, 2026)
 []
