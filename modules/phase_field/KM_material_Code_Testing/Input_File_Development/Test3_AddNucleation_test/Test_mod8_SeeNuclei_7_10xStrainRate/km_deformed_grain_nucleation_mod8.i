@@ -21,7 +21,7 @@ end_time_i = '${fparse 10 * (1/time_scale_i)}'    # 10
 length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
 
 # Initial Dislocation Input Text File
-input_text_file = test_100xRhoInitial
+input_text_file = test_1000xRhoInitial
 
 # Filename
 Folder_name = 'Output/'
@@ -104,7 +104,7 @@ alpha_taylor_i = 10
 
 [AuxVariables]
   [gamma_dot]
-    initial_condition = 1e-0   # 1.0e-3
+    initial_condition = 1e1   # 1.0e-3  1e-1
   []
   [T]
     initial_condition = 1073.0  # 800 C ~= 1073 K
