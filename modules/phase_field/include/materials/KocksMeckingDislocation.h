@@ -73,7 +73,8 @@ protected:
   // ---- k2_dyn internal params (Estrin-Mecking) ----
   const Real _k20;
   const Real _Q_dyn;
-  const Real _n_exp;
+  // const Real _n_exp;
+  const Real _m;
   const Real _gdot_ref;
   const Real _gdot_min;
 

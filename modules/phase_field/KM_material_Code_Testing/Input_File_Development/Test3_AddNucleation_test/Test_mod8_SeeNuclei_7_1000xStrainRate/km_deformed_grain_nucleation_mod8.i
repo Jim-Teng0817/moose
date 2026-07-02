@@ -21,11 +21,11 @@ dt_i = 2e-1
 length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
 
 # Initial Dislocation Input Text File
-input_text_file = test_100xRhoInitial
+input_text_file = test_1000xRhoInitial
 
 # Filename
 Folder_name = 'Output/'
-mod_num = 7
+mod_num = 8
 
 # nucleation                      # Added for Nucleation (Jim June 17, 2026)
 # initial_op_num_i = 4        # original deformed grains / active initial OPs
@@ -104,10 +104,10 @@ alpha_taylor_i = 10
 
 [AuxVariables]
   [gamma_dot]
-    initial_condition = 1e-1   # 1.0e-3
+    initial_condition = 1e1   # 1.0e-3  1e-1
   []
   [T]
-    initial_condition = 873.0
+    initial_condition = 1073.0  # 800 C ~= 1073 K
   []
   [rho_grain]
     family = MONOMIAL
@@ -301,7 +301,7 @@ alpha_taylor_i = 10
     expression = '2 * theta_0 / (M_taylor * alpha_taylor * G * b)'
     block = 0
     outputs = exodus
-  []      
+  []
 
   # [nucleation]                         # Added for Nucleation (Jim June 18, 2026)
   #   type = DiscreteNucleation

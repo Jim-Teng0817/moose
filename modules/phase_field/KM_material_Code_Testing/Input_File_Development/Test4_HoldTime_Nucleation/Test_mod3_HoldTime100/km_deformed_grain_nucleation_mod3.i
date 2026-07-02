@@ -21,11 +21,11 @@ dt_i = 2e-1
 length_scale_i = '${units 1e-8 m}'   # in default, 1e-9 m = 1 nm    1e-6   1e-9
 
 # Initial Dislocation Input Text File
-input_text_file = test_100xRhoInitial
+input_text_file = test_1000xRhoInitial
 
 # Filename
 Folder_name = 'Output/'
-mod_num = 7
+mod_num = 3
 
 # nucleation                      # Added for Nucleation (Jim June 17, 2026)
 # initial_op_num_i = 4        # original deformed grains / active initial OPs
@@ -49,21 +49,21 @@ nuc_prob_i = 5.0e-4         # stochastic insertion probability/rate density   # 
 # bnds_crit_i = 0.10          # Added for Nucleation (Jim June 17, 2026) # -1.0 
 
 # For k_1
-burger_i = 3.42e-10           # Added for Nucleation (Jim June 17, 2026) # 2004_J Rest
+burger_i = 2.96e-10           # Added for Nucleation (Jim June 17, 2026) # 2004_J Rest
 G_shear_i = 32.7              # Added for Nucleation (Jim June 17, 2026) # 2024_Sourabh B. Kadambi
-theta_0_i = 10
-M_taylor_i = 10
-alpha_taylor_i = 10
+theta_0_i = 0.1635
+M_taylor_i = 2.75
+alpha_taylor_i = 0.3
 
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 32             # 16
-  ny = 32             # 16
+  nx = 24             # 16 32
+  ny = 24             # 16 32
   xmin = 0.0
-  xmax = 64.0
+  xmax = 32.0         # 64 
   ymin = 0.0
-  ymax = 64.0
+  ymax = 32.0         # 64 
   uniform_refine = 2 # Initial uniform refinement of the mesh. # 2
 []
 
@@ -162,7 +162,7 @@ alpha_taylor_i = 10
     type = DiscreteNucleationForce
     variable = gr8
     map = nuc_map
-    no_nucleus_value = 0
+    # no_nucleus_value = 0
     nucleus_value = 1
   []
   [nuc_reaction_gr8]                      # Added for Nucleation (Jim June 19, 2026)
@@ -218,19 +218,19 @@ alpha_taylor_i = 10
     type = DiscreteNucleationInserter
     probability = P_nuc
     radius = ${nuc_radius_i}              # initial radius of the nucli
-    hold_time = 0
-    # time_dependent_statistics = false
-    time_dependent_statistics = true
-    seed = 12345
+    hold_time = 100
+    time_dependent_statistics = false
+    # time_dependent_statistics = true
+    # seed = 12345
     execute_on = TIMESTEP_END
   []
 
   [nuc_map]                               # Added for Nucleation (Jim June 17, 2026)
     type = DiscreteNucleationMap
     inserter = nuc_inserter
-    periodic = gr8                        # Modified for Nucleation (Jim June 19, 2026)  # gr4
+    # periodic = gr0                        # Modified for Nucleation (Jim June 19, 2026)  # gr4
     int_width = 2.0
-    execute_on = TIMESTEP_BEGIN
+    # execute_on = TIMESTEP_BEGIN
   []
 []
 
@@ -365,7 +365,7 @@ alpha_taylor_i = 10
   l_max_its = 15
   l_tol = 1.0e-3
   start_time = 0.0
-  num_steps = 450
+  num_steps = 205
   # end_time = '${end_time_i}'             # end time (Jim June 3, 2026)
   # nl_abs_tol = 1e-8
   nl_abs_tol = 1.0e-10

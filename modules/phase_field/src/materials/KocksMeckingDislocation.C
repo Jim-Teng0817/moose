@@ -53,7 +53,8 @@ KocksMeckingDislocationTempl<is_ad>::validParams()
   // k2_dyn (Estrin-Mecking)
   params.addParam<Real>("k20", 0.0, "Prefactor for k2_dyn.");
   params.addParam<Real>("Q_dyn", 0.0, "Activation energy for dynamic recovery.");
-  params.addParam<Real>("n_exp", 1.0, "Strain-rate sensitivity exponent.");
+  // params.addParam<Real>("n_exp", 1.0, "Strain-rate sensitivity exponent.");
+  params.addParam<Real>("m", 1.0, "Stress-Strain rate sensitivity exponent.");
   params.addParam<Real>("gdot_ref", 1.0, "Reference strain rate in Estrin-Mecking k2_dyn (1/s).");
   params.addParam<Real>("gdot_min", 1.0e-12, "Floor on |γ̇| to keep k2_dyn finite as γ̇→0.");
 
@@ -134,7 +135,8 @@ KocksMeckingDislocationTempl<is_ad>::KocksMeckingDislocationTempl(
     _L_obs(getParam<Real>("L_obs")),
     _k20(getParam<Real>("k20")),
     _Q_dyn(getParam<Real>("Q_dyn")),
-    _n_exp(getParam<Real>("n_exp")),
+    // _n_exp(getParam<Real>("n_exp")),
+    _m(getParam<Real>("m")),
     _gdot_ref(getParam<Real>("gdot_ref")),
     _gdot_min(getParam<Real>("gdot_min")),
     _ks0(getParam<Real>("ks0")),
@@ -167,8 +169,10 @@ KocksMeckingDislocationTempl<is_ad>::KocksMeckingDislocationTempl(
   else if (_rho_init_var)
     _ic_source = IcSource::CoupledVar;
 
-  if (_n_exp <= 0.0)
-    paramError("n_exp", "n_exp must be positive (got ", _n_exp, ").");
+  // if (_n_exp <= 0.0)
+  //   paramError("n_exp", "n_exp must be positive (got ", _n_exp, ").");
+  if (_m <= 0.0)
+    paramError("m", "m must be positive (got ", _m, ").");
   if (_gdot_min <= 0.0)
     paramError("gdot_min", "gdot_min must be positive.");
   if (_rho_min <= 0.0)
@@ -205,7 +209,9 @@ KocksMeckingDislocationTempl<is_ad>::evalK2Dyn(Real gdot, Real T) const
   const Real g = std::max(std::abs(gdot), _gdot_min);
   const Real Tc = std::max(T, _T_min);
   const Real Qj = _Q_dyn * _Q_to_J;
-  return _k20 * std::pow(_gdot_ref / g, 1.0 / _n_exp) * std::exp(-Qj / (_n_exp * kB_SI * Tc));
+  // return _k20 * std::pow(g / _gdot_ref, 1 - ( 1.0 / _n_exp )) * std::exp(-Qj / (_n_exp * kB_SI * Tc));
+  return _k20 * std::pow(g / _gdot_ref, 1 - _m) * std::exp(- (_m * Qj) / (kB_SI * Tc));
+
 }
 
 template <bool is_ad>
@@ -321,7 +327,8 @@ KocksMeckingDislocationTempl<is_ad>::computeQpProperties()
     {
       const Real Qj = _Q_dyn * _Q_to_J;
       k2_dyn_ad =
-          _k20 * pow(_gdot_ref / gdot_eff, 1.0 / _n_exp) * exp(-Qj / (_n_exp * kB_SI * T_eff));
+          // _k20 * pow(_gdot_ref / gdot_eff, 1.0 / _n_exp) * exp(-Qj / (_n_exp * kB_SI * T_eff));
+          _k20 * pow(gdot_eff / _gdot_ref, 1 - _m) * exp(- (_m * Qj) / (kB_SI * T_eff));           
     }
     if (_enable_stat_recovery && !_use_ext_k2_stat)
     {

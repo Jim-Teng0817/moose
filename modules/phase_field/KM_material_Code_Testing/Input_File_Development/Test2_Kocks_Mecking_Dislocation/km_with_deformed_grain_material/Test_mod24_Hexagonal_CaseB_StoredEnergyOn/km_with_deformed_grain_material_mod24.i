@@ -129,7 +129,7 @@ mod_num = 24
   # [PolycrystalStoredEnergy]               # Added for DeformedGrain (Jim June 5, 2026)
   #   grain_tracker = grain_tracker
   # []
-  [PolycrystalStoredEnergy]               # Added for Hexogonal IC (Jim June 18, 2026)
+  [PolycrystalStoredEnergy]               # Added for Hexagonal IC (Jim June 18, 2026)
     grain_tracker = grain_tracker
     deformed_grain_num = 3
     op_num = 4
@@ -148,7 +148,7 @@ mod_num = 24
   #   coloring_algorithm = bt
   # []
 
-  [hex_ic]
+  [hex_ic]                                  # Added for Hexagonal IC (Jim June 18, 2026)
     type = PolycrystalHex
     # grain_num = 4
     coloring_algorithm = bt
@@ -190,7 +190,7 @@ mod_num = 24
   #   []
   # []
 
-  [PolycrystalICs]                                      # Added for Hexogonal IC (Jim June 18, 2026)
+  [PolycrystalICs]                                      # Added for Hexagonal IC (Jim June 18, 2026)
     [PolycrystalColoringIC]
       polycrystal_ic_uo = hex_ic
     []
@@ -198,7 +198,7 @@ mod_num = 24
 
 []
 
-[BCs]                                                   # Added for Hexogonal IC (Jim June 18, 2026)
+[BCs]                                                   # Added for Hexagonal IC (Jim June 18, 2026)
   [Periodic]
     [all]
       auto_direction = 'x y'

@@ -14,7 +14,7 @@
 # time_scale_i = '${units 1 s}'
 time_scale_i = 1e-2         # 1e-6
 dt_i = 2e-1                
-end_time_i = '${fparse 10 * (1/time_scale_i)}'    # 10
+# end_time_i = '${fparse 10 * (1/time_scale_i)}'    # 10
 # sync_times_i = '${fparse 1800 * (1/time_scale_i)}'   # represent the 1800 s = 30 min
 
 # length
@@ -144,18 +144,27 @@ alpha_taylor_i = 10
   []
 
   # Insert nuclei into reserved OP gr4.
-  [nuc_force_gr4]                         # Added for Nucleation (Jim June 17, 2026)
-    type = DiscreteNucleationForce
-    variable = gr4
-    map = nuc_map
-    no_nucleus_value = 0
-    nucleus_value = 1
-  []
+  # [nuc_force_gr4]                         # Added for Nucleation (Jim June 17, 2026)
+  #   type = DiscreteNucleationForce
+  #   variable = gr4
+  #   map = nuc_map
+  #   no_nucleus_value = 0
+  #   nucleus_value = 1
+  # []
 
   # [nuc_reaction_gr4]                      # Added for Nucleation (Jim June 17, 2026)
   #   type = Reaction
   #   variable = gr4
   # []
+
+  # Insert nuclei into reserved OP gr8.
+  [nuc_force_gr8]                         # Added for Nucleation (Jim June 17, 2026)
+    type = DiscreteNucleationForce
+    variable = gr8
+    map = nuc_map
+    no_nucleus_value = 0
+    nucleus_value = 1
+  []
   [nuc_reaction_gr8]                      # Added for Nucleation (Jim June 19, 2026)
     type = Reaction
     variable = gr8
@@ -356,8 +365,8 @@ alpha_taylor_i = 10
   l_max_its = 15
   l_tol = 1.0e-3
   start_time = 0.0
-  # num_steps = 500
-  end_time = '${end_time_i}'             # end time (Jim June 3, 2026)
+  num_steps = 450
+  # end_time = '${end_time_i}'             # end time (Jim June 3, 2026)
   # nl_abs_tol = 1e-8
   nl_abs_tol = 1.0e-10
   nl_rel_tol = 1.0e-8
