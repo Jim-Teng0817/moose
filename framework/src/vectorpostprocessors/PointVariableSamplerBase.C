@@ -21,6 +21,7 @@ PointVariableSamplerBase::validParams()
   InputParameters params = GeneralVectorPostprocessor::validParams();
 
   params += SamplerBase::validParams();
+  params += PointSamplerBase::validParams();
 
   params.addRequiredCoupledVar(
       "variable", "The names of the variables that this VectorPostprocessor operates on");

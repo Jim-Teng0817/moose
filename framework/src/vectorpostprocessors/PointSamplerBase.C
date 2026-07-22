@@ -28,6 +28,10 @@ PointSamplerBase::validParams()
       "warn_discontinuous_face_values",
       true,
       "Whether to return a warning if a discontinuous variable is sampled on a face");
+  params.addParam<Real>(
+    "OB_Temp",
+    300.0,
+    "The temperature out of the block");          // Added to test effect of Out of Block Temp. (Jim Feb. 13, 2026)
 
   return params;
 }
@@ -37,6 +41,7 @@ PointSamplerBase::PointSamplerBase(const InputParameters & parameters)
     SamplerBase(parameters, this, _communicator),
     _mesh(_subproblem.mesh()),
     _pp_value(getPostprocessorValue("scaling")),
+    _ob_temp(getParam<Real>("OB_Temp")),          // Added to test effect of Out of Block Temp. (Jim Feb. 13, 2026)
     _warn_discontinuous_face_values(getParam<bool>("warn_discontinuous_face_values")),
     _discontinuous_at_faces(false)
 {
@@ -98,7 +103,8 @@ PointSamplerBase::finalize()
       // mooseWarning("In ", name(), ", sample point not found: ", _points[i], ". Setting default value.");     // Added for CSV data points input (Jim March 30, 2025)
 
       // _point_values[i] = std::vector<double>{300.0, 0.0, 0.0};     // Modified for CSV data points input (Jim Sep. 27, 2025) //set default value to be 300 K (Room Temp.), solidification rate, temperature gradient      SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);     // Added for CSV data points input (Jim March 30, 2025)
-      _point_values[i] = std::vector<double>{300.0};   // Modified for CSV data points input (Jim Nov. 04, 2025)
+      // _point_values[i] = std::vector<double>{300.0};   // Modified for CSV data points input (Jim Nov. 04, 2025)
+      _point_values[i] = std::vector<double>{_ob_temp};   // Modified for CSV data points input (Jim Feb. 13, 2026)
 
       SamplerBase::addSample(_points[i], _ids[i], _point_values[i]);   // Added for CSV data points input (Jim Nov. 05, 2025)
       continue; // done for this point   // Added for CSV data points input (Jim Nov. 05, 2025)

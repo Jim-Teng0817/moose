@@ -61,7 +61,10 @@ protected:
 
   /// Postprocessor multiplying the variables
   const Real & _pp_value;
-
+  
+  /// The temperature out of the block    // Added to test effect of Out of Block Temp. (Jim Feb. 13, 2026)
+  const Real _ob_temp;
+  
   /// Whether to return a warning if a discontinuous variable is sampled on a face
   const bool _warn_discontinuous_face_values;
 
