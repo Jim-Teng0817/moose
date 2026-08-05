@@ -16,7 +16,8 @@ class GrainTrackerDislocations;
 /**
  * Per-quadrature-point Kocks-Mecking dislocation density evolution:
  *
- *   dρ/dt = γ̇ (k1 √ρ - k2_dyn ρ) - k2_stat ρ
+ **   dρ/dt = γ̇ (k1 √ρ - k2_dyn ρ) - k2_stat ρ
+ *  (Updated) dρ/dt = γ̇ k1 √ρ - k2_dyn ρ - k2_stat ρ
  *
  * with k2_dyn the Estrin-Mecking form and k2_stat an Arrhenius static
  * recovery term. Integrated locally with backward-Euler + Newton. Outputs a
@@ -73,7 +74,8 @@ protected:
   // ---- k2_dyn internal params (Estrin-Mecking) ----
   const Real _k20;
   const Real _Q_dyn;
-  const Real _n_exp;
+  // const Real _n_exp;
+  const Real _m;
   const Real _gdot_ref;
   const Real _gdot_min;
 
@@ -106,6 +108,7 @@ protected:
   const Real _T_min;
   const unsigned int _max_iter;
   const Real _tol;
+  const Real _time_scale;
 
   // ---- Grain-id gating ----
   const bool _gate_by_grain_id;
