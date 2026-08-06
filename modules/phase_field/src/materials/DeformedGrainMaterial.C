@@ -90,7 +90,10 @@ DeformedGrainMaterialTempl<is_ad>::computeQpProperties()
   // Pick per-QP rho using priority: rho_var > Disloc_Den_per_grain[grain_id] > Disloc_Den.
   GenericReal<is_ad> rho = _dislocation_density_constant;
   if (_has_rho_var)
+  {
     rho = (*_rho_var)[this->_qp];
+    // std::cout << "rho has_rho_var DGM" << rho << std::endl;                  // Added for debugging
+  }
   else if (_has_rho_per_grain)
   {
     // grain_id lookup matches the existing loop below - reuse the same op_to_grains query.
@@ -107,6 +110,7 @@ DeformedGrainMaterialTempl<is_ad>::computeQpProperties()
         break;
       }
     }
+    // std::cout << "rho has_rho_per_grain DGM" << rho << std::endl;                  // Added for debugging
   }
 
   _disloc_den_i[this->_qp] = rho * (this->_length_scale * this->_length_scale);

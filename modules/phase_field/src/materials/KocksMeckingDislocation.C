@@ -34,7 +34,8 @@ KocksMeckingDislocationTempl<is_ad>::validParams()
 
   // Mechanism toggles
   params.addParam<bool>("enable_storage", true, "Enable the k1·√ρ storage term.");
-  params.addParam<bool>("enable_dynamic_recovery", true, "Enable γ̇·k2_dyn·ρ dynamic recovery.");
+  // params.addParam<bool>("enable_dynamic_recovery", true, "Enable γ̇·k2_dyn·ρ dynamic recovery.");
+  params.addParam<bool>("enable_dynamic_recovery", true, "Enable k2_dyn·ρ dynamic recovery.");
   params.addParam<bool>("enable_static_recovery", false, "Enable k2_stat·ρ static recovery.");
 
   // External coefficient sources
@@ -103,6 +104,11 @@ KocksMeckingDislocationTempl<is_ad>::validParams()
   params.addCoupledVarWithAutoBuild(
       "v", "var_name_base", "op_num", "Array of order parameter variables (for grain-id gate).");
 
+  params.addParam<Real>(
+    "time_scale",
+    1.0,
+    "Physical seconds per MOOSE time unit for the Kocks-Mecking rho update.");
+
   return params;
 }
 
@@ -156,6 +162,7 @@ KocksMeckingDislocationTempl<is_ad>::KocksMeckingDislocationTempl(
     _T_min(getParam<Real>("T_min")),
     _max_iter(getParam<unsigned int>("max_newton_iter")),
     _tol(getParam<Real>("newton_tol")),
+    _time_scale(getParam<Real>("time_scale")),
     _gate_by_grain_id(getParam<bool>("gate_by_grain_id")),
     _deformed_grain_num(getParam<unsigned int>("deformed_grain_num")),
     _grain_tracker(_gate_by_grain_id ? &getUserObject<GrainTrackerDislocations>("grain_tracker")
@@ -210,8 +217,12 @@ KocksMeckingDislocationTempl<is_ad>::evalK2Dyn(Real gdot, Real T) const
   const Real Tc = std::max(T, _T_min);
   const Real Qj = _Q_dyn * _Q_to_J;
   // return _k20 * std::pow(g / _gdot_ref, 1 - ( 1.0 / _n_exp )) * std::exp(-Qj / (_n_exp * kB_SI * Tc));
-  return _k20 * std::pow(g / _gdot_ref, 1 - _m) * std::exp(- (_m * Qj) / (kB_SI * Tc));
+  // return _k20 * std::pow(g / _gdot_ref, 1 - _m) * std::exp(- (_m * Qj) / (kB_SI * Tc));
 
+  // Time-based dynamic recovery coefficient:
+  // k2_dyn_t = k20 * gdot * (gdot / gdot_ref)^(-m) * exp(-m Q / kBT)
+  // Units: 1/s if k20 is dimensionless.
+  return _k20 * g * std::pow(g / _gdot_ref, -_m) * std::exp(-(_m * Qj) / (kB_SI * Tc));
 }
 
 template <bool is_ad>
@@ -228,15 +239,22 @@ Real
 KocksMeckingDislocationTempl<is_ad>::solveRho(
     Real rho_old, Real k1, Real k2_dyn, Real k2_stat, Real gdot, Real dt) const
 {
-  // Backward-Euler Newton on F(ρ) = ρ - ρ_old - dt·RHS(ρ),
-  // RHS(ρ) = γ̇·k1·√ρ - γ̇·k2_dyn·ρ - k2_stat·ρ.
-  // F is monotone in ρ over [rho_min, ∞), so Newton converges without line search.
+  // // Backward-Euler Newton on F(ρ) = ρ - ρ_old - dt·RHS(ρ),
+  // // RHS(ρ) = γ̇·k1·√ρ - γ̇·k2_dyn·ρ - k2_stat·ρ.
+  // // F is monotone in ρ over [rho_min, ∞), so Newton converges without line search.
+  // (Updated) Backward-Euler Newton on F(rho) = rho - rho_old - dt * RHS(rho),
+  // (Updated) RHS(rho) = gdot * k1 * sqrt(rho) - k2_dyn_t * rho - k2_stat_t * rho.
   Real rho = std::max(rho_old, _rho_min);
+  // std::cout << "rho KM begin" << rho << std::endl;                  // Added for debugging
   for (unsigned int it = 0; it < _max_iter; ++it)
   {
     const Real sqrt_rho = std::sqrt(rho);
-    const Real rhs = gdot * k1 * sqrt_rho - gdot * k2_dyn * rho - k2_stat * rho;
-    const Real drhs = (sqrt_rho > 0.0 ? 0.5 * gdot * k1 / sqrt_rho : 0.0) - gdot * k2_dyn - k2_stat;
+    // const Real rhs = gdot * k1 * sqrt_rho - gdot * k2_dyn * rho - k2_stat * rho;
+    // const Real drhs = (sqrt_rho > 0.0 ? 0.5 * gdot * k1 / sqrt_rho : 0.0) - gdot * k2_dyn - k2_stat;
+
+    const Real rhs = gdot * k1 * sqrt_rho - k2_dyn * rho - k2_stat * rho;
+    const Real drhs = (sqrt_rho > 0.0 ? 0.5 * gdot * k1 / sqrt_rho : 0.0) - k2_dyn - k2_stat;
+
     const Real F = rho - rho_old - dt * rhs;
     const Real dF = 1.0 - dt * drhs;
     if (dF == 0.0)
@@ -250,6 +268,7 @@ KocksMeckingDislocationTempl<is_ad>::solveRho(
     }
     rho = rho_new;
   }
+  // std::cout << "rho KM end" << rho << std::endl;                  // Added for debugging
   return rho;
 }
 
@@ -302,7 +321,9 @@ KocksMeckingDislocationTempl<is_ad>::computeQpProperties()
   const Real k2_stat =
       _enable_stat_recovery ? (_use_ext_k2_stat ? (*_k2_stat_ext)[_qp] : evalK2Stat(T_r)) : 0.0;
 
-  const Real rho_star = solveRho(rho_old, k1, k2_dyn, k2_stat, gdot_r, _dt);
+  const Real dt_phys = _dt * _time_scale;
+  // const Real rho_star = solveRho(rho_old, k1, k2_dyn, k2_stat, gdot_r, _dt);
+  const Real rho_star = solveRho(rho_old, k1, k2_dyn, k2_stat, gdot_r, dt_phys);
 
   if constexpr (is_ad)
   {
@@ -328,7 +349,12 @@ KocksMeckingDislocationTempl<is_ad>::computeQpProperties()
       const Real Qj = _Q_dyn * _Q_to_J;
       k2_dyn_ad =
           // _k20 * pow(_gdot_ref / gdot_eff, 1.0 / _n_exp) * exp(-Qj / (_n_exp * kB_SI * T_eff));
-          _k20 * pow(gdot_eff / _gdot_ref, 1 - _m) * exp(- (_m * Qj) / (kB_SI * T_eff));           
+          // _k20 * pow(gdot_eff / _gdot_ref, 1 - _m) * exp(- (_m * Qj) / (kB_SI * T_eff)); 
+          
+          // Time-based dynamic recovery coefficient:
+          // k2_dyn_t = k20 * gdot * (gdot / gdot_ref)^(-m) * exp(-m Q / kBT)
+          // Units: 1/s if k20 is dimensionless.
+          _k20 * gdot_eff * pow(gdot_eff / _gdot_ref, -_m) * exp(-(_m * Qj) / (kB_SI * T_eff));
     }
     if (_enable_stat_recovery && !_use_ext_k2_stat)
     {
@@ -336,13 +362,19 @@ KocksMeckingDislocationTempl<is_ad>::computeQpProperties()
       k2_stat_ad = _ks0 * exp(-Qj / (kB_SI * T_eff));
     }
 
+    // const ADReal rhs_ad =
+        // gdot_eff * k1_ad * sqrt_rho_star - gdot_eff * k2_dyn_ad * rho_star - k2_stat_ad * rho_star;
     const ADReal rhs_ad =
-        gdot_eff * k1_ad * sqrt_rho_star - gdot_eff * k2_dyn_ad * rho_star - k2_stat_ad * rho_star;
-    const ADReal F_ad = ADReal(rho_star) - ADReal(rho_old) - _dt * rhs_ad;
+        gdot_eff * k1_ad * sqrt_rho_star - k2_dyn_ad * rho_star - k2_stat_ad * rho_star;
+    // const ADReal F_ad = ADReal(rho_star) - ADReal(rho_old) - _dt * rhs_ad;
+    const ADReal F_ad = ADReal(rho_star) - ADReal(rho_old) - dt_phys * rhs_ad;
 
+    // const Real drhs_drho =
+    //     (sqrt_rho_star > 0.0 ? 0.5 * gdot_r * k1 / sqrt_rho_star : 0.0) - gdot_r * k2_dyn - k2_stat;
     const Real drhs_drho =
-        (sqrt_rho_star > 0.0 ? 0.5 * gdot_r * k1 / sqrt_rho_star : 0.0) - gdot_r * k2_dyn - k2_stat;
-    const Real F_rho = 1.0 - _dt * drhs_drho;
+        (sqrt_rho_star > 0.0 ? 0.5 * gdot_r * k1 / sqrt_rho_star : 0.0) - k2_dyn - k2_stat;
+    // const Real F_rho = 1.0 - _dt * drhs_drho;
+    const Real F_rho = 1.0 - dt_phys * drhs_drho;
     const Real inv_F_rho = (F_rho != 0.0 ? 1.0 / F_rho : 0.0);
 
     ADReal rho_ad = rho_star;
